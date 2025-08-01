@@ -1,0 +1,30 @@
+📜 Terms of Service
+Effective Date: [August 1st 2025 - Today]
+Bot Name: [Ifrit Bot]
+By using [Ifrit Bot] ("the Bot"), you agree to the following Terms of Service. If you do not agree, please refrain from using the Bot.
+1. Description of Service
+The Bot provides utilities related to cryptocurrency trading, including but not limited to:
+- Real-time crypto price updates
+- News aggregation from public crypto sources
+- Buy/sell quota tracking for selected coins
+2. No Financial Advice
+The Bot is intended for informational purposes only. It does not provide financial, investment, or trading advice. You should consult a qualified financial advisor before making any investment decisions.
+3. Data Accuracy Disclaimer
+While we strive to provide accurate and timely information, the data presented by the Bot may be:
+- Delayed
+- Incomplete
+- Inaccurate
+- Based on third-party sources
+We do not guarantee the accuracy, reliability, or completeness of any data. Use at your own risk.
+4. User Conduct
+You agree not to:
+- Use the Bot for illegal or malicious activities
+- Attempt to reverse-engineer, exploit, or overload the Bot
+- Share misleading or harmful information using the Bot
+5. Limitation of Liability
+We are not liable for any losses, damages, or consequences resulting from the use of the Bot, including but not limited to:
+- Financial losses
+- Missed trading opportunities
+- Misinterpretation of data
+6. Changes to Terms
+We reserve the right to update these Terms at any time. Continued use of the Bot after changes implies acceptance of the new Terms.

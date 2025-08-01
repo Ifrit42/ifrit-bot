@@ -1,0 +1,27 @@
+🔐 Privacy Policy
+Effective Date: [August 1st 2025 - Today]
+Bot Name: [Ifrit Bot]
+Your privacy is important to us. This Privacy Policy outlines how the Bot handles user data.
+1. Data Collection
+The Bot may collect the following types of data:
+- Discord user ID (for command tracking and moderation)
+- Server ID and channel ID (for contextual responses)
+- Command usage logs (for performance and analytics)
+We do not collect:
+- Personal identifiable information (PII)
+- Wallet addresses
+- Private messages
+2. Data Usage
+Collected data is used solely to:
+- Improve Bot functionality
+- Monitor usage patterns
+- Prevent abuse
+We do not sell, share, or disclose your data to third parties.
+3. Third-Party APIs
+The Bot may interact with external APIs (e.g., CoinGecko, CryptoCompare) to fetch market data. These services may have their own privacy policies, which we encourage you to review.
+4. Data Retention
+Usage logs may be stored for up to [Insert Duration] for performance monitoring. You may request deletion of your data by contacting the Bot owner.
+5. Security
+We implement reasonable security measures to protect data. However, no method of transmission or storage is 100% secure.
+6. Changes to Policy
+We may update this Privacy Policy from time to time. Continued use of the Bot implies acceptance of the updated policy.
