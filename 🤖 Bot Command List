@@ -1,0 +1,24 @@
+🤖 Bot Command List
+Here are the commands you can use:
+!ping
+Ping the bot to check responsiveness.
+Usage: !ping
+!trending
+Show the current top trending cryptocurrencies.
+Usage: !trending
+!crypto_news
+Browse the latest crypto news with pagination.
+Usage: !crypto_news [limit]
+Example: !crypto_news 10
+!crypto_prices
+Fetch current top coin prices.
+Usage: !crypto_prices
+!market
+Show recent market trades for a coin.
+Usage: !market <coin> [limit]
+Example: !market alif 2000
+!help
+Display this help message.
+Usage: !help
+Need more details? Contact the server admin.
+ifrit.cancode@gmail.com
