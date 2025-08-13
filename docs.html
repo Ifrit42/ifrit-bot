@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ifrit BOT - Commands & Docs</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #2c2f33;
+      color: #fff;
+    }
+    .navbar {
+      background-color: #23272a;
+    }
+    .navbar-brand, .nav-link {
+      color: #fff !important;
+    }
+    h1, h2 {
+      color: #7289da;
+    }
+    .command-section {
+      background-color: #23272a;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #00ff99;
+    }
+    footer {
+      background-color: #23272a;
+      padding: 20px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">Ifrit BOT</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link active" href="#">Commands & Docs</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <div class="container my-5">
+    <h1 class="text-center mb-4">📜 Commands & Documentation</h1>
+    <p class="text-center text-light">Here’s everything you can do with Ifrit BOT. Use the commands in any Discord channel where the bot is active.</p>
+  </div>
+
+  <!-- Commands List -->
+  <div class="container">
+
+    <div class="command-section">
+      <h2>💲 Crypto Price & Alerts</h2>
+      <ul>
+        <li><b><code>!price &lt;symbol&gt;</code></b> — Fetches the latest price of a cryptocurrency.<br><i>Example:</i> <code>!price btc</code></li>
+        <li><b><code>!alert &lt;symbol&gt; &lt;target price&gt;</code></b> — Sets a price alert for a coin.<br><i>Example:</i> <code>!alert doge 10000</code> or <code>!alert eth +10%</code></li>
+        <li><b><code>!removealert &lt;symbol&gt;</code></b> — Removes an active alert.<br><i>Example:</i> <code>!removealert btc</code></li>
+        <li><b><code>!alerts</code></b> — Lists all your active alerts.</li>
+      </ul>
+    </div>
+
+    <div class="command-section">
+      <h2>📈 Market Insights</h2>
+      <ul>
+        <li><b><code>!analyze &lt;symbol&gt;</code></b> — Analyzes the market trend of a coin.<br><i>Example:</i> <code>!analyze btc</code></li>
+        <li><b><code>!trending</code></b> — Shows trending cryptocurrencies.</li>
+        <li><b><code>!market</code></b> — Displays overall market activity & stats.</li>
+      </ul>
+    </div>
+
+    <div class="command-section">
+      <h2>📰 News & Updates</h2>
+      <ul>
+        <li><b><code>!news &lt;symbol&gt;</code></b> — Shows recent news for a specific coin.<br><i>Example:</i> <code>!news btc</code></li>
+      </ul>
+    </div>
+
+    <div class="command-section">
+      <h2>⚙️ Utility & Admin</h2>
+      <ul>
+        <li><b><code>!maintenance on/off</code></b> — Toggles bot maintenance mode (<b>Owner Only</b>).</li>
+        <li><b><code>!ping</code></b> — Checks bot latency.</li>
+        <li><b><code>!help</code></b> — Displays available commands.</li>
+      </ul>
+    </div>
+    <div class="mt-4 p-3 rounded-3 border border-warning" style="background:#1a1111;">
+          <p class="mb-0 small text-warning">
+            ⚠ <strong>Disclaimer:</strong> Ifrit BOT provides information for educational and entertainment purposes only.
+            Data may be delayed, incomplete, or inaccurate. This is <strong>not</strong> financial advice. Always do your own research.
+            By using the bot, you agree to the <a href="https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%93%9C%20Terms%20of%20Service.txt" class="link-warning">Terms of Service</a> and
+            <a href="https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%94%90%20Privacy%20Policy.txt" class="link-warning">Privacy Policy</a>.
+          </p>
+        </div>
+  </div>
+
+<footer>
+  <p>&copy; 2025 Ifrit BOT | Built with love❤️</p>
+</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
