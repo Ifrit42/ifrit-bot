@@ -1,30 +1,80 @@
-🤖 Bot Command List
-Here are the commands you can use:
-!ping
-Ping the bot to check responsiveness.
-Usage: !ping
-!trending
-Show the current top trending cryptocurrencies.
-Usage: !trending
-!crypto_news
-Browse the latest crypto news with pagination.
-Usage: !crypto_news [limit]
-Example: !crypto_news 10
-!crypto_prices
-Fetch current top coin prices.
-Usage: !crypto_prices
-!market
-Show recent market trades for a coin.
-Usage: !market <coin> [limit]
-Example: !market alif 2000
-!help
-Display this help message.
-Usage: !help
-Need more details? Contact the server admin.
-ifrit.cancode@gmail.com
+# Ifrit Bot 🤖🔥
+A powerful, multi-purpose Discord bot designed for **crypto market tracking**, **news aggregation**, and **community utilities** — all in one.
 
-//Custom Feature
-You are able to use this bot's command in the Private Chat of you and the BOT itself,
-we will be developing a new command for traders efficiency stay tuned for the update!!
+## 🌟 Features
+- **Crypto Price Tracking** – Get live cryptocurrency prices from Indodax.
+- **Trending Coins** – Stay updated on the top trending coins.
+- **Technical Analysis** – Get SMA, RSI, and other price indicators.
+- **Crypto News** – Fetch the latest news from multiple sources.
+- **Alerts & Notifications** – Set price alerts for your favorite coins.
+- **Fun Commands** – Lighten the mood with memes and fun responses.
+- **Private Commands** – Manage sensitive API keys and check balances securely via DM.
 
-© Ifrit Can Code
+---
+
+## 📜 Commands
+
+### 🔍 Crypto Tracking
+| Command | Description | Example |
+|---------|-------------|---------|
+| `!price <coin>` | Get the current price of a coin. | `!price btc` |
+| `!trending` | List top trending coins. | `!trending` |
+| `!analyze <coin>` | Get a market analysis of a coin. | `!analyze eth` |
+| `!alert <coin> <price>` | Set a price alert for a coin. | `!alert btc 700000000` |
+| `!alerts` | View your active alerts. | `!alerts` |
+| `!removealert <id>` | Remove a specific alert. | `!removealert 1` |
+
+### 📰 News
+| Command | Description | Example |
+|---------|-------------|---------|
+| `!news` | Get the latest crypto news headlines. | `!news` |
+
+### ⚙️ Utility
+| Command | Description | Example |
+|---------|-------------|---------|
+| `!help` | Show help menu. | `!help` |
+| `!ping` | Check bot latency. | `!ping` |
+
+### 🔒 DM Only Commands
+These commands **can only be used in Direct Messages** with the bot for privacy and security.
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `!setkeys <api_key> <api_secret>` | Store your personal API keys for exchange access. | `!setkeys myapikey myapisecret` |
+| `!balance` | Check your account balance using stored API keys. | `!balance` |
+
+---
+
+## 🚀 How to Use
+1. **Invite Ifrit Bot** to your server.  
+2. Type `!help` in any channel to see all public commands.  
+3. Use crypto commands to check prices, set alerts, and read news.  
+4. DM the bot directly for private commands like `!setkeys` and `!balance`.  
+5. Receive automatic DMs from the bot when:
+   - You add it to your server (welcome guide)
+   - Your price alert is triggered
+
+---
+
+## 💻 Self-Hosting
+If you want to run your own version of Ifrit Bot:
+
+### Requirements
+- Python 3.10+
+- Discord Bot Token
+- Indodax API access (public)
+- Required packages: `discord.py`, `requests`, `beautifulsoup4`, `prettytable`, `numpy`, `python-dotenv`
+
+### Installation
+```bash
+git clone https://github.com/YOUR_USERNAME/ifrit-bot.git
+cd ifrit-bot
+pip install -r requirements.txt
+
+### Create a .env file
+DISCORD_TOKEN=your_token_here
+
+### Run on CMD or Terminal
+python bot.py
+
+MIT License © 2025 Ifrit Bot Project by Ifrit Can Code
