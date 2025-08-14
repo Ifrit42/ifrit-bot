@@ -16,6 +16,24 @@
     .navbar-brand, .nav-link {
       color: #fff !important;
     }
+    .nav-link {
+    position: relative;
+    transition: color 0.3s ease;
+  }
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #00FF85;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+  }
+  .nav-link:hover::after {
+    width: 80%;
+  }
     h1, h2 {
       color: #7289da;
     }
@@ -36,6 +54,52 @@
       padding: 20px 0;
       text-align: center;
     }
+
+    /* Fade-in animation */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    .fade-in.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .dev-img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 8px 29px rgb(0, 56, 8);
+      padding: 5px;
+    }
+
+    #about-dev .p-3.rounded-3 {
+      transition: all 0.3s ease;
+    }
+    #about-dev .p-3.rounded-3:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0 15px rgba(0, 255, 133, 0.3);
+    }
+
+    .btn-primary,
+  .btn-outline-light,
+  .btn-dark {
+    transition: all 0.25s ease;
+  }
+  .btn-primary:hover {
+    background-color: #4752C4;
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(88, 101, 242, 0.6);
+  }
+  .btn-outline-light:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+  }
+  .btn-dark:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(150, 150, 150, 0.4);
+  }
   </style>
 </head>
 <body>
@@ -54,7 +118,7 @@
   </nav>
 
   <!-- Header -->
-  <div class="container my-5">
+  <div class="container my-5 fade-in">
     <h1 class="text-center mb-4">📜 Commands & Documentation</h1>
     <p class="text-center text-light">Here’s everything you can do with Ifrit BOT. Use the commands in any Discord channel where the bot is active.</p>
   </div>
@@ -62,7 +126,7 @@
   <!-- Commands List -->
   <div class="container">
 
-    <div class="command-section">
+    <div class="command-section fade-in">
       <h2>💲 Crypto Price & Alerts</h2>
       <ul>
         <li><b><code>!price &lt;symbol&gt;</code></b> — Fetches the latest price of a cryptocurrency.<br><i>Example:</i> <code>!price btc</code></li>
@@ -72,7 +136,7 @@
       </ul>
     </div>
 
-    <div class="command-section">
+    <div class="command-section fade-in">
       <h2>📈 Market Insights</h2>
       <ul>
         <li><b><code>!analyze &lt;symbol&gt;</code></b> — Analyzes the market trend of a coin.<br><i>Example:</i> <code>!analyze btc</code></li>
@@ -81,35 +145,128 @@
       </ul>
     </div>
 
-    <div class="command-section">
+    <div class="command-section fade-in">
       <h2>📰 News & Updates</h2>
       <ul>
         <li><b><code>!news &lt;symbol&gt;</code></b> — Shows recent news for a specific coin.<br><i>Example:</i> <code>!news btc</code></li>
       </ul>
     </div>
 
-    <div class="command-section">
+    <div class="command-section fade-in">
       <h2>⚙️ Utility & Admin</h2>
       <ul>
-        <li><b><code>!maintenance on/off</code></b> — Toggles bot maintenance mode (<b>Owner Only</b>).</li>
+        <li><b><code>!setkeys</code></b> — Set user's API key to use !balance command.</li>
+        <li><b><code>!balance</code></b> — Checks user's balance.</li>
         <li><b><code>!ping</code></b> — Checks bot latency.</li>
         <li><b><code>!help</code></b> — Displays available commands.</li>
+        <li><b><code>!maintenance on/off</code></b> — Toggles bot maintenance mode (<b>Owner Only</b>).</li>
       </ul>
     </div>
-    <div class="mt-4 p-3 rounded-3 border border-warning" style="background:#1a1111;">
-          <p class="mb-0 small text-warning">
-            ⚠ <strong>Disclaimer:</strong> Ifrit BOT provides information for educational and entertainment purposes only.
-            Data may be delayed, incomplete, or inaccurate. This is <strong>not</strong> financial advice. Always do your own research.
-            By using the bot, you agree to the <a href="https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%93%9C%20Terms%20of%20Service.txt" class="link-warning">Terms of Service</a> and
-            <a href="https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%94%90%20Privacy%20Policy.txt" class="link-warning">Privacy Policy</a>.
-          </p>
-        </div>
-  </div>
 
-<footer>
-  <p>&copy; 2025 Ifrit BOT | Built with love❤️</p>
-</footer>
+    <div class="mt-4 p-3 rounded-3 border border-warning fade-in" style="background:#1a1111;">
+      <p class="mb-0 small text-warning">
+        ⚠ <strong>Disclaimer:</strong> Ifrit BOT provides information for educational and entertainment purposes only.
+        Data may be delayed, incomplete, or inaccurate. This is <strong>not</strong> financial advice. Always do your own research.
+        By using the bot, you agree to the <a href="https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%93%9C%20Terms%20of%20Service.txt" class="link-warning">Terms of Service</a> and
+        <a href="https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%94%90%20Privacy%20Policy.txt" class="link-warning">Privacy Policy</a>.
+      </p>
+    </div>
+  </div>
+  
+  <section id="about-dev" class="py-5 fade-in" style="background:#0b0e14;">
+    <div class="container">
+      <div class="row align-items-center g-4">
+        <div class="col-md-5 text-center">
+          <img src="assets/IMG_7284-Edited.png" alt="Ifrit BOT Developer"
+               class="img-fluid dev-img"
+               style="max-height: 440px;">
+        </div>
+
+        <div class="col-md-7">
+          <h2 class="display-6 fw-semibold text-white mb-3">
+            About <span class="text-primary">Ifrit BOT Developer</span>
+          </h2>
+          <p class="lead text-light opacity-90">
+            <strong>Ghosana Wijaya</strong>, known online as <strong>Ifrit</strong>, is a
+            passionate software developer and creative artist who blends
+            technical expertise with visual storytelling. From building intuitive,
+            responsive websites to crafting advanced Discord bots like
+            <span class="text-primary">Ifrit BOT</span>, he thrives on merging
+            functionality with aesthetics.
+          </p>
+          <p class="text-secondary">
+            With a background in <strong>full-stack web development</strong> and a love for
+            <strong>photography, videography, and editing</strong>, Ifrit ensures
+            every project is both technically solid and visually engaging. His goal:
+            deliver tools and experiences that are fast, reliable, and a joy to use.
+          </p>
+
+          <div class="row g-3 mt-3">
+            <div class="col-sm-6">
+              <div class="h-100 p-3 rounded-3" style="background:#111727;">
+                <h6 class="text-white mb-1">💻 Full-Stack Developer</h6>
+                <p class="mb-0 text-secondary small">Crafts sleek, high-performance websites & applications.</p>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="h-100 p-3 rounded-3" style="background:#111727;">
+                <h6 class="text-white mb-1">🎨 Creative Artist</h6>
+                <p class="mb-0 text-secondary small">Photographer, videographer, and visual storyteller.</p>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="h-100 p-3 rounded-3" style="background:#111727;">
+                <h6 class="text-white mb-1">🤝 Community Builder</h6>
+                <p class="mb-0 text-secondary small">Engages and supports users through active development.</p>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="h-100 p-3 rounded-3" style="background:#111727;">
+                <h6 class="text-white mb-1">⚡ Innovation Driven</h6>
+                <p class="mb-0 text-secondary small">Always improving, learning, and adapting to new tech.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <a href="https://ifrit42.github.io/gusan/" class="btn btn-primary btn-lg px-4">
+              Portfolio Website
+            </a>
+            <a href="https://github.com/Ifrit42" class="btn btn-outline-light btn-lg px-4">
+              GitHub Profile
+            </a>
+            <a href="https://discord.gg/mSGT3wNntX" class="btn btn-dark btn-lg px-4 border border-secondary">
+              Contact on Discord
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Ifrit Can Code | Built with love❤️</p>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const fadeElements = document.querySelectorAll(".fade-in");
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("show");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+
+      fadeElements.forEach((el) => observer.observe(el));
+    });
+  </script>
 </body>
 </html>
