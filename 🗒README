@@ -1,16 +1,29 @@
-# Ifrit Bot 🤖🔥
+# Ifrit Bot 🤖🔥 - Powered by : Indodax.com | Coingecko.com | Coindesk.com | 
 # Terms Of Service - https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%93%9C%20Terms%20of%20Service.txt
 # Privacy Policy - https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%94%90%20Privacy%20Policy.txt
 A powerful, multi-purpose Discord bot designed for **crypto market tracking**, **news aggregation**, and **community utilities** — all in one.
 
+## Libraries
+   ・discord.py → Connects bot to Discord so it can send/receive messages, embeds, and commands.
+   
+   ・requests → Fetches data from APIs like Indodax, CoinGecko, and CoinDesk.
+   
+   ・beautifulsoup4 → Scrapes and parses HTML for news headlines in CoinDesk.
+   
+   ・dotenv → Loads your API keys and bot token from .env files.
+   
+   ・prettytable → Displays tables for things like crypto prices or market trades in a nice format.
+   
+   ・numpy → Used for calculations like averages, trends, or technical indicators.
+
 ## 🌟 Features
-- **Crypto Price Tracking** – Get live cryptocurrency prices from Indodax.
-- **Trending Coins** – Stay updated on the top trending coins.
-- **Technical Analysis** – Get SMA, RSI, and other price indicators.
-- **Crypto News** – Fetch the latest news from multiple sources.
-- **Alerts & Notifications** – Set price alerts for your favorite coins.
-- **Fun Commands** – Lighten the mood with memes and fun responses.
-- **Private Commands** – Manage sensitive API keys and check balances securely via DM.
+   - **Crypto Price Tracking** – Get live cryptocurrency prices from Indodax.
+   - **Trending Coins** – Stay updated on the top trending coins.
+   - **Technical Analysis** – Get SMA, RSI, and other price indicators.
+   - **Crypto News** – Fetch the latest news from multiple sources.
+   - **Alerts & Notifications** – Set price alerts for your favorite coins.
+   - **Fun Commands** – Lighten the mood with memes and fun responses.
+   - **Private Commands** – Manage sensitive API keys and check balances securely via DM.
 
 ---
 
