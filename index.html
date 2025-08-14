@@ -6,34 +6,102 @@
   <title>Ifrit BOT</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body {
-      background-color: #23272A;
-      color: white;
-      font-family: 'Poppins', sans-serif;
+  body {
+    background-color: #23272A;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+  }
+  .navbar {
+    background-color: #2C2F33;
+  }
+
+  /* Navbar hover underline */
+  .nav-link {
+    position: relative;
+    transition: color 0.3s ease;
+  }
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #00FF85;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+  }
+  .nav-link:hover::after {
+    width: 80%;
+  }
+
+  /* Buttons hover effect */
+  .btn-primary,
+  .btn-outline-light,
+  .btn-dark {
+    transition: all 0.25s ease;
+  }
+  .btn-primary:hover {
+    background-color: #4752C4;
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(88, 101, 242, 0.6);
+  }
+  .btn-outline-light:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+  }
+  .btn-dark:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(150, 150, 150, 0.4);
+  }
+
+  /* Feature cards hover lift */
+  .feature-card {
+    background-color: #2C2F33;
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+  }
+  .feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 20px rgba(0, 255, 133, 0.2);
+  }
+
+  /* About section hover highlight */
+  .p-3.rounded-3 {
+    transition: all 0.3s ease;
+  }
+  .p-3.rounded-3:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 15px rgba(0, 255, 133, 0.3);
+    color: white;
+  }
+
+  .mb-0 {
+    transition: all 0.3s ease;
+    color: #5f646b;
+  }
+
+  .mb-0:hover {
+    color: white;
+  }
+
+  footer {
+    background-color: #2C2F33;
+    padding: 20px 0;
+    text-align: center;
+  }
+
+  .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
     }
-    .navbar {
-      background-color: #2C2F33;
+    .fade-in.show {
+      opacity: 1;
+      transform: translateY(0);
     }
-    .btn-primary {
-      background-color: #5865F2;
-      border: none;
-    }
-    .btn-primary:hover {
-      background-color: #4752C4;
-    }
-    .highlight {
-      color: #00FF85;
-    }
-    .feature-card {
-      background-color: #2C2F33;
-      color: white;
-      border: none;
-    }
-    footer {
-      background-color: #2C2F33;
-      padding: 20px 0;
-      text-align: center;
-    }
+</style>
   </style>
 </head>
 <body>
@@ -50,22 +118,22 @@
         <li class="nav-item"><a class="nav-link" href="#overview">Overview</a></li>
         <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
         <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-        <li class="nav-item"><a class="btn btn-primary ms-2" href="https://discord.com/oauth2/authorize?client_id=1402454855678951464&scope=bot%20applications.commands&permissions=8">Invite Bot</a></li>
+        <li class="nav-item"><a class="btn btn-primary ms-2" href="#">Invite Bot</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
 <!-- Hero Section -->
-<section class="text-center p-5">
+<section class="fade-in text-center p-5">
   <img src="assets/Crypto Bot Logo - nobg.png" alt="Ifrit BOT Logo" class="mb-4 bot-logo" style="max-width: 200px;">
   <h1 class="mb-3">Welcome to <span class="highlight">Ifrit BOT</span></h1>
   <p class="lead">Your all-in-one crypto & utility Discord bot</p>
-  <a href="https://discord.com/oauth2/authorize?client_id=1402454855678951464&scope=bot%20applications.commands&permissions=8" class="btn btn-primary btn-lg mt-3">Invite to Discord</a>
+  <a href="#" class="btn btn-primary btn-lg mt-3">Invite to Discord</a>
 </section>
 
 <!-- Overview -->
-<section id="overview" class="py-5 bg-dark text-light">
+<section id="overview" class="fade-in py-5 bg-dark text-light">
   <div class="container">
     <h2 class="text-center mb-4">Overview</h2>
     <p class="lead text-center">
@@ -81,7 +149,7 @@
 </section>
 
 <!-- Features -->
-<section id="features" class="p-5">
+<section id="features" class="fade-in p-5">
   <div class="container">
     <h2 class="highlight">Features</h2>
     <div class="row g-4">
@@ -127,7 +195,7 @@
 
 
 <!-- About -->
-<section id="about" class="py-5" style="background:#0b0e14;">
+<section id="about" class="fade-in py-5" style="background:#0b0e14;">
   <div class="container">
     <div class="row align-items-center g-4">
       <div class="col-md-5 text-center">
@@ -152,37 +220,37 @@
           <div class="col-sm-6">
             <div class="h-100 p-3 rounded-3" style="background:#111727;">
               <h6 class="text-white mb-1">📊 Live Price Tracking</h6>
-              <p class="mb-0 text-secondary small">Check the latest prices instantly for your favorite coins.</p>
+              <p class="mb-0 small">Check the latest prices instantly for your favorite coins.</p>
             </div>
           </div>
           <div class="col-sm-6">
             <div class="h-100 p-3 rounded-3" style="background:#111727;">
               <h6 class="text-white mb-1">🔍 Price Analysis Tools</h6>
-              <p class="mb-0 text-secondary small">Percent changes, alerts, and trend overviews at a glance.</p>
+              <p class="mb-0 small">Percent changes, alerts, and trend overviews at a glance.</p>
             </div>
           </div>
           <div class="col-sm-6">
             <div class="h-100 p-3 rounded-3" style="background:#111727;">
               <h6 class="text-white mb-1">📈 Trending Coins</h6>
-              <p class="mb-0 text-secondary small">Spot what’s hot before the rest of the market.</p>
+              <p class="mb-0 small">Spot what’s hot before the rest of the market.</p>
             </div>
           </div>
           <div class="col-sm-6">
             <div class="h-100 p-3 rounded-3" style="background:#111727;">
               <h6 class="text-white mb-1">📉 Market Activity</h6>
-              <p class="mb-0 text-secondary small">Monitor high-volume trades and shifts in sentiment.</p>
+              <p class="mb-0 small">Monitor high-volume trades and shifts in sentiment.</p>
             </div>
           </div>
           <div class="col-sm-6">
             <div class="h-100 p-3 rounded-3" style="background:#111727;">
               <h6 class="text-white mb-1">📰 Crypto News</h6>
-              <p class="mb-0 text-secondary small">Relevant headlines to support your research.</p>
+              <p class="mb-0 small">Relevant headlines to support your research.</p>
             </div>
           </div>
           <div class="col-sm-6">
             <div class="h-100 p-3 rounded-3" style="background:#111727;">
               <h6 class="text-white mb-1">⚡ Fast & Reliable</h6>
-              <p class="mb-0 text-secondary small">Low-latency responses and constant improvements.</p>
+              <p class="mb-0 small">Low-latency responses and constant improvements.</p>
             </div>
           </div>
         </div>
@@ -206,7 +274,7 @@
           <p class="mb-0 small text-warning">
             ⚠ <strong>Disclaimer:</strong> Ifrit BOT provides information for educational and entertainment purposes only.
             Data may be delayed, incomplete, or inaccurate. This is <strong>not</strong> financial advice. Always do your own research.
-            By using the bot, you agree to the <a href="https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%93%9C%20Terms%20of%20Service.txt" class="link-warning">Terms of Service</a> and
+            By using the bot, you agree to the <a href="https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%94%90%20Privacy%20Policy.txt" class="link-warning">Terms of Service</a> and
             <a href="https://github.com/Ifrit42/ifrit-bot/blob/main/%F0%9F%94%90%20Privacy%20Policy.txt" class="link-warning">Privacy Policy</a>.
           </p>
         </div>
@@ -218,11 +286,22 @@
 
 <!-- Footer -->
 <footer>
-  <p>&copy; 2025 Ifrit BOT | Built with love❤️</p>
+  <p>&copy; 2025 Ifrit Can Code | Built with love❤️</p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const fadeElements = document.querySelectorAll('.fade-in');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('show');
+      }
+    });
+  }, { threshold: 0.2 });
+
+  fadeElements.forEach(el => observer.observe(el));
+</script>
 </body>
 </html>
-
-
