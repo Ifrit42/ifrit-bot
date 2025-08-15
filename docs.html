@@ -124,70 +124,70 @@
   </div>
 
   <!-- Commands List -->
-  <div class="container">
+<div class="container">
 
-    <div class="command-section fade-in">
-      <h2>💲 Crypto Price & Alerts</h2>
-      <ul>
-        <li><b><code>!price &lt;symbol&gt;</code></b> — Fetches the latest price of a cryptocurrency.<br><i>Example:</i> <code>!price btc</code></li>
-        <li><b><code>!alert &lt;symbol&gt; &lt;target price&gt;</code></b> — Sets a price alert for a coin.<br><i>Example:</i> <code>!alert doge 10000</code> or <code>!alert eth +10%</code></li>
-        <li><b><code>!removealert &lt;symbol&gt;</code></b> — Removes an active alert.<br><i>Example:</i> <code>!removealert btc</code></li>
-        <li><b><code>!alerts</code></b> — Lists all your active alerts.</li>
-      </ul>
-    </div>
+  <div class="command-section fade-in">
+    <h2>💲 Crypto Price & Alerts</h2>
+    <ul>
+      <li><b><code>!price &lt;symbol&gt;</code></b> — Fetch the latest price of a cryptocurrency.<br><i>Example:</i> <code>!price btc</code></li>
+      <li><b><code>!alert &lt;symbol&gt; &lt;target price&gt;</code></b> — Sets a price alert for a coin.<br><i>Example:</i> <code>!alert doge 10000</code> or <code>!alert eth +10%</code></li>
+      <li><b><code>!removealert &lt;symbol&gt;</code></b> — Removes an active alert.<br><i>Example:</i> <code>!removealert btc</code></li>
+      <li><b><code>!alerts</code></b> — Lists all your active alerts.</li>
+    </ul>
+  </div>
 
-    <div class="command-section fade-in">
-      <h2>📈 Market Insights</h2>
-      <ul>
-        <li><b><code>!analyze &lt;symbol&gt;</code></b> — Analyzes the market trend of a coin.<br><i>Example:</i> <code>!analyze btc</code></li>
-        <li><b><code>!trending</code></b> — Shows trending cryptocurrencies.</li>
-        <li><b><code>!market</code></b> — Displays overall market activity & stats.</li>
-      </ul>
-    </div>
+  <div class="command-section fade-in">
+    <h2>📈 Market Insights</h2>
+    <ul>
+      <li><b><code>!analyze &lt;symbol&gt;</code></b> — Analyzes the market trend of a coin.<br><i>Example:</i> <code>!analyze btc</code></li>
+      <li><b><code>!trending</code></b> — Shows trending cryptocurrencies.</li>
+      <li><b><code>!market</code></b> — Displays overall market activity & stats.<br><i>Example:</i> <code>!market btc 500</code></li>
+    </ul>
+  </div>
 
-    <div class="command-section fade-in">
-      <h2>📰 News & Updates</h2>
-      <ul>
-        <li><b><code>!news &lt;symbol&gt;</code></b> — Shows recent news for a specific coin.<br><i>Example:</i> <code>!news btc</code></li>
-      </ul>
-    </div>
+  <div class="command-section fade-in">
+    <h2>📰 News & Updates</h2>
+    <ul>
+      <li><b><code>!news &lt;symbol&gt;</code></b> — Shows recent news for a specific coin.<br><i>Example:</i> <code>!news btc</code></li>
+    </ul>
+  </div>
 
-    <div class="command-section fade-in">
-  <h2>💹 Trading Commands</h2>
-  <ul>
-    <li>
-      <b><code>!buy &lt;symbol&gt; &lt;price&gt; &lt;amount&gt;</code></b> — Places a buy order for a specific coin.
-      <br><i>Example:</i> <code>!buy doge 3685 5</code> (buys 5 DOGE at 3,685 IDR each).
-      <br><small class="text-warning">⚠ Minimum total order: 10,000 IDR.</small>
-    </li>
-    <li>
-      <b><code>!buy_list</code></b> — Lists all your active/pending buy orders with order IDs.
-    </li>
-    <li>
-      <b><code>!cancelbuy &lt;order_id&gt;</code></b> — Cancels a specific buy order.
-      <br><i>Example:</i> <code>!cancelbuy DOGEIDR-123456</code>
-    </li>
-    <li>
-      <b><code>!sell &lt;symbol&gt; &lt;price&gt; &lt;amount&gt;</code></b> — Places a sell order for a specific coin.
-      <br><i>Example:</i> <code>!sell doge 4000 10</code> (sells 10 DOGE at 4,000 IDR each).
-    </li>
-    <li>
-      <b><code>!cancelsell &lt;order_id&gt;</code></b> — Cancels a specific sell order.
-      <br><i>Example:</i> <code>!cancelsell DOGEIDR-987654</code>
-    </li>
-  </ul>
+  <div class="command-section fade-in">
+    <h2>💹 Trading Commands</h2>
+    <ul>
+      <li>
+        <b><code>!buy &lt;symbol&gt; &lt;price&gt; &lt;amount&gt;</code></b> — Place a buy order.<br>
+        <i>Example:</i> <code>!buy doge 3685 5</code> (buys 5 DOGE at 3,685 IDR each).<br>
+        <small class="text-warning">⚠ Minimum total order: 10,000 IDR</small>
+      </li>
+      <li><b><code>!buy_list</code></b> — Lists all your active/pending buy orders.</li>
+      <li><b><code>!cancelbuy &lt;order_id&gt;</code></b> — Cancels a specific buy order.<br>
+        <i>Example:</i> <code>!cancelbuy DOGEIDR-123456</code>
+      </li>
+      <li>
+        <b><code>!sell &lt;symbol&gt; &lt;price&gt; &lt;amount&gt;</code></b> — Place a sell order.<br>
+        <i>Example:</i> <code>!sell doge 4000 10</code> (sells 10 DOGE at 4,000 IDR each).<br>
+        <small class="text-warning">⚠ Minimum total sell order: 15,000 IDR (depends on coin)</small>
+      </li>
+      <li><b><code>!sell_list</code></b> — Lists all your active/pending sell orders.</li>
+      <li><b><code>!cancelsell &lt;order_id&gt;</code></b> — Cancels a specific sell order.<br>
+        <i>Example:</i> <code>!cancelsell DOGEIDR-987654</code>
+      </li>
+    </ul>
+  </div>
+
+  <div class="command-section fade-in">
+    <h2>⚙️ Utility & Admin</h2>
+    <ul>
+      <li><b><code>!setkeys</code></b> — Set user's API key for balance checks.</li>
+      <li><b><code>!balance</code></b> — Checks user's balance.</li>
+      <li><b><code>!ping</code></b> — Checks bot latency.</li>
+      <li><b><code>!help</code></b> — Displays available commands.</li>
+      <li><b><code>!maintenance on/off</code></b> — Toggles bot maintenance mode (<b>Owner Only</b>).</li>
+    </ul>
+  </div>
+
 </div>
-
-    <div class="command-section fade-in">
-      <h2>⚙️ Utility & Admin</h2>
-      <ul>
-        <li><b><code>!setkeys</code></b> — Set user's API key to use !balance command.</li>
-        <li><b><code>!balance</code></b> — Checks user's balance.</li>
-        <li><b><code>!ping</code></b> — Checks bot latency.</li>
-        <li><b><code>!help</code></b> — Displays available commands.</li>
-        <li><b><code>!maintenance on/off</code></b> — Toggles bot maintenance mode (<b>Owner Only</b>).</li>
-      </ul>
-    </div>
 
     <div class="mt-4 p-3 rounded-3 border border-warning fade-in" style="background:#1a1111;">
       <p class="mb-0 small text-warning">
@@ -296,4 +296,5 @@
   </script>
 </body>
 </html>
+
 
