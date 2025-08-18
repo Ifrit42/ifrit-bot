@@ -82,28 +82,14 @@ def save_credentials(creds):
     with open(CRED_FILE, "w") as f:
         json.dump(creds, f, indent=2)
 
-
 def with_typing(func):
     @wraps(func)
-    async def wrapper(ctx, *args, **kwargs):
-        async def keep_typing():
-            try:
-                while True:
-                    await ctx.trigger_typing()
-                    await asyncio.sleep(5)  # send typing signal every 5 sec
-            except asyncio.CancelledError:
-                pass
-
-        typing_loop = asyncio.create_task(keep_typing())
-        try:
+    async def wrapped(ctx, *args, **kwargs):
+        async with ctx.typing():
+            # Optional: short artificial delay to make it look more natural
+            await asyncio.sleep(1.5)
             return await func(ctx, *args, **kwargs)
-        finally:
-            typing_loop.cancel()
-    return wrapper
-
-def get_user_alerts(user_id: str):
-    alerts = load_alerts()
-    return alerts.get(user_id, [])
+    return wrapped
 
 # Monitor Alerts
 # This background task checks for alerts every 15 seconds
@@ -203,6 +189,22 @@ async def on_command_error(ctx, error):
             usage_msg = "❌ Usage: `!balance` to check your Indodax account balance."
         elif ctx.command.name == "pairs":
             usage_msg = "❌ Usage: `!pairs` to list all trading pairs."
+        elif ctx.command.name == "buy":
+            usage_msg = "❌ Usage: `!buy <symbol> <price> <amount>`" \
+            "\nto place a buy order.\nExample: `!buy doge 3685 5`" \
+            "\n Minimum Buy Price : **10.000 IDR**"
+        elif ctx.command.name == "sell":
+            usage_msg = "❌ Usage: `!sell <symbol> <price> <amount>`" \
+            "\nto place a sell order.\nExample: `!sell doge 4000 10`" \
+            "\n Minimum Sell Price : **25.000 IDR**"
+        elif ctx.command.name == "buy_list":
+            usage_msg = "❌ Usage: `!buy_list` to list all your active/pending buy orders."
+        elif ctx.command.name == "cancelbuy":
+            usage_msg = "❌ Usage: `!cancelbuy <order_id>` to cancel a specific buy order.\nExample: `!cancelbuy 123456`"
+        elif ctx.command.name == "sell_list":
+            usage_msg = "❌ Usage: `!sell_list` to list all your active/pending sell orders."
+        elif ctx.command.name == "cancelsell":
+            usage_msg = "❌ Usage: `!cancelsell <order_id>` to cancel a specific sell order.\nExample: `!cancelsell 987654`"
         else:
             usage_msg = f"❌ Missing argument(s) for `{ctx.command}`"
 
@@ -345,6 +347,23 @@ async def help_command(ctx):
     embed.set_footer(text="Need more details? Contact the server admin.")
     await ctx.send(embed=embed)
 
+@bot.command(name="ping")
+async def ping(ctx):
+    """Check both user ping (roundtrip) and bot latency in one embed."""
+    before = time.monotonic()
+    message = await ctx.send("🏓 Measuring ping...")
+    user_ping = (time.monotonic() - before) * 1000
+    bot_ping = bot.latency * 1000  # websocket latency in ms
+
+    embed = discord.Embed(
+        title="🏓 Pong!",
+        color=discord.Color.green()
+    )
+    embed.add_field(name="👤 Your Ping", value=f"`{int(user_ping)} ms`", inline=True)
+    embed.add_field(name="🤖 Bot Latency", value=f"`{int(bot_ping)} ms`", inline=True)
+    embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar.url)
+
+    await message.edit(content=None, embed=embed)
 
 @bot.command(name="crypto_news")
 @maintenance_check()
@@ -371,50 +390,66 @@ async def crypto_prices(ctx):
 # This command analyzes news sentiment and market activity to give buy/sell advice
 @bot.command(
     name="analyze",
-    help="!analyze <coin> — analyze when to buy/sell based on news sentiment, market activity, current & predicted price"
+    help="!analyze <coin> <time> <unit> — analyze when to buy/sell based on news, trades, and predicted price.\nExample: !analyze btc 2 hours"
 )
 @maintenance_check()
 @with_typing
-async def analyze(ctx, coin: str):
+async def analyze(ctx, coin: str, time_value: str = "1", time_unit: str = "hours"):
     coin = coin.lower()
     pair = f"{coin}_idr"
     client = IndodaxClient()
 
-    # 1) Fetch top 10 news articles
+    # --- Time Parsing ---
+    # Allow inputs like "30m", "2h", "45 minutes", etc.
+    unit_map = {"minutes": 60, "minute": 60, "m": 60, "hours": 3600, "hour": 3600, "h": 3600}
+
+    # Case 1: user typed `30m` or `2h`
+    if time_value[-1].lower() in ["m", "h"] and time_value[:-1].isdigit():
+        unit = time_value[-1].lower()
+        time_unit = "minutes" if unit == "m" else "hours"
+        time_value = int(time_value[:-1])
+
+    # Case 2: user typed `30 minutes` or `2 hours`
+    else:
+        if not time_value.isdigit():
+            return await ctx.send("⚠️ Invalid time format. Example: `30 minutes`, `2 hours`, `30m`, or `2h`.")
+        time_value = int(time_value)
+        if time_unit.lower() not in unit_map:
+            return await ctx.send("⚠️ Please use `minutes` or `hours` for time unit.")
+
+    seconds_ahead = time_value * unit_map[time_unit.lower()]
+
+    # ------------------- (rest of your existing logic) -------------------
+    # 1) Fetch news
     articles = fetch_crypto_news(10)
     if not articles:
         return await ctx.send(f"⚠️ Couldn’t fetch news for `{coin}` analysis.")
 
-    # 2) Naive sentiment analysis on headlines
+    # 2) Sentiment
     pos_words = ["surge", "gain", "rally", "bull", "record", "up", "boost", "optimistic"]
     neg_words = ["drop", "dip", "slump", "bear", "decline", "down", "crash", "pessimistic"]
     pos_count = neg_count = 0
     for art in articles:
         title = art["title"].lower()
-        for w in pos_words:
-            if w in title:
-                pos_count += 1
-        for w in neg_words:
-            if w in title:
-                neg_count += 1
+        pos_count += sum(1 for w in pos_words if w in title)
+        neg_count += sum(1 for w in neg_words if w in title)
 
-    # 3) Fetch the last 500 trades and tally buys vs sells
+    # 3) Market activity
     try:
         trades = client.get_trades(pair, 500)
     except Exception as e:
         return await ctx.send(f"⚠️ Failed to fetch market data for `{coin}`: {e}")
-
-    buy_count  = sum(1 for t in trades if t["type"] == "buy")
+    buy_count = sum(1 for t in trades if t["type"] == "buy")
     sell_count = sum(1 for t in trades if t["type"] == "sell")
 
-    # 4) Get current price
+    # 4) Current price
     try:
         ticker = client.get_ticker(pair)
         current_price = float(ticker["ticker"]["last"])
     except Exception as e:
         current_price = None
 
-    # 5) Simple 1‐hour‐ahead linear regression on trade history
+    # 5) Price prediction
     predicted_price = None
     try:
         times = np.array([float(t["date"]) for t in trades])
@@ -423,85 +458,76 @@ async def analyze(ctx, coin: str):
         times -= t0
 
         slope, intercept = np.polyfit(times, prices, 1)
-
-        hours_ahead = 1200 # 3600 = 1 hour in seconds
-        future_t = (times.max() + hours_ahead)
+        future_t = (times.max() + seconds_ahead)
         predicted_price = slope * future_t + intercept
     except Exception:
         predicted_price = None
 
-    if pos_count > neg_count and buy_count > sell_count:
-        advice, color = "Strong Buy", 0x2ECC71
-    elif pos_count > neg_count:
-        advice, color = "Buy", 0x2ECC71
-    elif neg_count > pos_count and sell_count > buy_count:
-        advice, color = "Strong Sell", 0xE74C3C
-    elif neg_count > pos_count:
-        advice, color = "Sell", 0xE74C3C
-    else:
-        advice, color = "Hold", 0xF1C40F
+    # --- Build Advice ---
+    news_strength = "Bullish" if pos_count > neg_count else "Bearish" if neg_count > pos_count else "Neutral"
+    market_strength = "More Buyers" if buy_count > sell_count else "More Sellers" if sell_count > buy_count else "Balanced"
+    price_trend = None
+    if predicted_price and current_price:
+        if predicted_price > current_price * 1.02:
+            price_trend = "Expected Rise"
+        elif predicted_price < current_price * 0.98:
+            price_trend = "Expected Drop"
+        else:
+            price_trend = "Flat"
 
+    # Score
+    score = 0
+    score += 1 if news_strength == "Bullish" else -1 if news_strength == "Bearish" else 0
+    score += 1 if market_strength == "More Buyers" else -1 if market_strength == "More Sellers" else 0
+    score += 1 if price_trend == "Expected Rise" else -1 if price_trend == "Expected Drop" else 0
+
+    if score >= 2:
+        advice, color = "Strong Buy 📈", 0xFFC30B
+    elif score == 1:
+        advice, color = "Buy ✅", 0x118C4F
+    elif score == 0:
+        advice, color = "Hold 🤔", 0xFFFB7
+    elif score == -1:
+        advice, color = "Sell ⚠️", 0x800000
+    else:
+        advice, color = "Strong Sell 🚨", 0xDBF27
+
+    # Reasoning
+    reasoning = []
+    reasoning.append(f"📰 **News** sentiment is `{news_strength}` ({pos_count} positive vs {neg_count} negative).")
+    reasoning.append(f"📊 **Market activity** shows `{market_strength}` ({buy_count} buys vs {sell_count} sells).")
+    if predicted_price and current_price:
+        pct = (predicted_price - current_price) / current_price * 100
+        reasoning.append(f"📈 **Price trend** indicates `{price_trend}` with a projected change of {pct:.2f}%.Over the next **{time_value} {time_unit}** ")
+    else:
+        reasoning.append("💹 Could not predict future price due to insufficient data.")
+
+    reasoning_text = "\n".join(reasoning)
+
+    # Embed
     embed = discord.Embed(
         title=f"🔍 Analysis for {coin.upper()}",
+        description=f"**Advice:** {advice}\n\n{reasoning_text}",
         color=color,
         timestamp=ctx.message.created_at
     )
 
-    embed.add_field(name="Advice", value=f"**{advice}**", inline=False)
-    embed.add_field(
-        name="News Sentiment",
-        value=f"🟢 Positive: {pos_count}\n🔴 Negative: {neg_count}",
-        inline=False
-    )
-    embed.add_field(
-        name="Market Activity (last 500 trades)",
-        value=f"🟢 Buys: {buy_count}\n🔴 Sells: {sell_count}",
-        inline=False
-    )
-    news_score   = pos_count - neg_count  
-    market_score = (buy_count > sell_count) - (sell_count > buy_count)  
-    pred_signal  = 0
-    if predicted_price and current_price:
-        pred_signal = 1 if predicted_price > current_price else -1
-
-    total_score = news_score + market_score + pred_signal
-
-    if predicted_price and current_price:
-        pct = (predicted_price - current_price) / current_price
-        if pct < -0.02:
-            advice, color = "Sell", 0xE74C3C
-        else:
-            if total_score >= 2:
-                advice, color = "Strong Buy", 0x2ECC71
-            elif total_score == 1:
-                advice, color = "Buy",        0x2ECC71
-            elif total_score == 0:
-                advice, color = "Hold",       0xF1C40F
-            elif total_score == -1:
-                advice, color = "Sell",       0xE74C3C
-            else:
-                advice, color = "Strong Sell",0xE74C3C
-    else:
-        if pos_count > neg_count and buy_count > sell_count:
-            advice, color = "Strong Buy", 0x2ECC71
-
-
-    if current_price is not None:
+    if current_price:
         embed.add_field(
             name="Current Price",
             value=f"₿ {current_price:,.2f} IDR",
-            inline=True
+            inline=False
         )
-    if predicted_price is not None:
+    if predicted_price:
         embed.add_field(
-            name="Predicted Price (20 mins)",
-            value=f"₿ {predicted_price:,.2f} IDR",
-            inline=True
+            name="Predicted Price",
+            value=f"₿ {predicted_price:,.2f} IDR `(in {time_value} {time_unit})`",
+            inline=False
         )
 
     top_titles = "\n".join(f"• {a['title']}" for a in articles[:3])
     embed.add_field(name="Top News Headlines", value=top_titles, inline=False)
-    embed.set_footer(text="Analyzed from 10 articles & 500 trades")
+    embed.set_footer(text=f"Analyzed from 10 articles & 500 trades | Prediction: {time_value} {time_unit}")
 
     await ctx.send(embed=embed)
 
@@ -573,7 +599,6 @@ async def market(ctx, coin: str, limit: int = 500):
     )
 
     await ctx.send(embed=embed)
-
 
 @bot.command(name="trending")
 @maintenance_check()
