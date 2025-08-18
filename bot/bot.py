@@ -11,6 +11,7 @@ import numpy as np
 from functools import wraps
 import asyncio
 import requests
+import aiohttp
 
 
 from alert_storage import load_alerts, save_alerts, get_pairs
@@ -18,9 +19,9 @@ from pending_storage import load_pending_orders, save_pending_orders, add_pendin
 from price_fetcher import get_last_price
 from indodax_api      import IndodaxClient
 from news_fetcher   import fetch_crypto_news
-from paginator      import NewsPaginator, PairsPaginator
+from paginator      import NewsPaginator, PairsPaginator, PricesPaginator
 from coingecko import fetch_trending_coins
-from price_analysis   import fetch_crypto_prices
+from price_analysis import fetch_price
 from quota_calculator import (
     calculate_buy_quota,
     calculate_sell_quota,
@@ -31,7 +32,7 @@ from quota_calculator import (
 CRED_FILE = "user_credentials.json"
 
 MAINTENANCE_MODE = False  # Change to False to disable
-BOT_OWNERS = [527832667845033994, 1402691770545995796]
+BOT_OWNERS = [527832667845033994, 1402691770545995796,577029761910439962]
 
 with open("pairs.json") as f:
     PAIRS = json.load(f)["symbols"]
@@ -182,7 +183,7 @@ async def on_command_error(ctx, error):
         elif ctx.command.name == "crypto_prices":
             usage_msg = "❌ Usage: `!crypto_prices` to fetch current top coin prices."
         elif ctx.command.name == "analyze":
-            usage_msg = "❌ Usage: `!analyze <coin>` to analyze when to buy/sell based on news & market stats."
+            usage_msg = "❌ Usage: `!analyze <coin> <time>(1h by default)` to analyze when to buy/sell based on news & market stats."
         elif ctx.command.name == "trending":
             usage_msg = "❌ Usage: `!trending` to show the current top trending cryptocurrencies."
         elif ctx.command.name == "balance":
@@ -305,7 +306,7 @@ async def help_command(ctx):
             ("ping", "Ping the bot to check responsiveness.", "`!ping`", None),
             ("help", "Display this help message.", "`!help`", None),
             ("trending", "Show the current top trending cryptocurrencies.", "`!trending`", None),
-            ("analyze", "Analyze when to buy/sell based on news & market stats.", "`!analyze <coin>`", "`!analyze floki`"),
+            ("analyze", "Analyze when to buy/sell based on news & market stats.", "`!analyze <coin> <time>(1h default)`", "`!analyze floki`"),
             ("market", "Show recent market trades for a coin.", "`!market <coin> [limit]`", "`!market btc 500`"),
             ("crypto_prices", "Fetch current top coin prices.", "`!crypto_prices`", None),
             ("crypto_news", "Browse the latest crypto news with pagination.", "`!crypto_news [limit]`", "`!crypto_news 10`"),
@@ -381,153 +382,308 @@ async def crypto_news(ctx, limit: int = 100):
 @maintenance_check()
 @with_typing
 async def crypto_prices(ctx):
-    """!crypto_prices — fetch current top coin prices."""
-    prices = fetch_crypto_prices()
-    for symbol, price in prices.items():
-        await ctx.send(f"{symbol.upper()}: Rp {price}")
+    # Load all symbols from pairs.json
+    try:
+        with open("pairs.json", "r") as f:
+            pairs = json.load(f)
+        all_pairs = pairs["symbols"]
+    except Exception as e:
+        return await ctx.send(f"⚠️ Could not load pairs.json: {e}")
+
+    paginator = PricesPaginator(all_pairs, fetch_price)
+    embed = Embed(
+        title="📊 Indodax Market",
+        description="Latest market prices (from pairs.json)",
+        color=0x2ECC71
+    )
+
+    # Limit to first 10 pairs (pagination comes next!)
+    for pair in all_pairs[:10]:
+        symbol, price = fetch_price(pair)
+        if price:
+            embed.add_field(
+                name=symbol.upper(),
+                value=f"Rp {price:,.0f}" if "idr" in pair else f"${price:,.2f}",
+                inline=True
+            )
+        else:
+            embed.add_field(
+                name=symbol.upper(),
+                value="❌ Error fetching price",
+                inline=True
+            )
+
+    await ctx.send(embed=paginator.make_embed(), view=paginator)
 
 # Analyze Command
 # This command analyzes news sentiment and market activity to give buy/sell advice
 @bot.command(
     name="analyze",
-    help="!analyze <coin> <time> <unit> — analyze when to buy/sell based on news, trades, and predicted price.\nExample: !analyze btc 2 hours"
+    help="!analyze <coin> <time> <unit> — analyze when to buy/sell based on news, trades, trend & prediction.\nExample: !analyze btc 2 hours"
 )
 @maintenance_check()
 @with_typing
-async def analyze(ctx, coin: str, time_value: str = "1", time_unit: str = "hours"):
-    coin = coin.lower()
+async def analyze(ctx, coin: str, *timeframe):
+    import numpy as np
+    import time as _time
+
+    def fmt_pct(x, decimals=2):
+        try:
+            return f"{x:.{decimals}f}%"
+        except Exception:
+            return "—"
+
+    def pct_change(a, b):
+        try:
+            return (a - b) / b * 100.0 if b else 0.0
+        except Exception:
+            return 0.0
+
+    def safe_ratio(a, b):
+        b = b if b else 1e-12
+        return a / b
+
+    # ---- Parse inputs ----
+    coin = coin.lower().strip()
     pair = f"{coin}_idr"
     client = IndodaxClient()
 
-    # --- Time Parsing ---
-    # Allow inputs like "30m", "2h", "45 minutes", etc.
-    unit_map = {"minutes": 60, "minute": 60, "m": 60, "hours": 3600, "hour": 3600, "h": 3600}
-
-    # Case 1: user typed `30m` or `2h`
-    if time_value[-1].lower() in ["m", "h"] and time_value[:-1].isdigit():
-        unit = time_value[-1].lower()
-        time_unit = "minutes" if unit == "m" else "hours"
-        time_value = int(time_value[:-1])
-
-    # Case 2: user typed `30 minutes` or `2 hours`
+    if not timeframe:  
+        # Default to 1 hour
+        time_value = 1
+        seconds_ahead = 3600
+        horizon_label = "1 hour"
     else:
-        if not time_value.isdigit():
-            return await ctx.send("⚠️ Invalid time format. Example: `30 minutes`, `2 hours`, `30m`, or `2h`.")
-        time_value = int(time_value)
-        if time_unit.lower() not in unit_map:
-            return await ctx.send("⚠️ Please use `minutes` or `hours` for time unit.")
+        tf_str = " ".join(timeframe).lower().strip()  # handles "30m", "30 m", "30 minutes", "2h", "2 hours"
 
-    seconds_ahead = time_value * unit_map[time_unit.lower()]
+        # Match flexible formats
+        match = re.match(r"^(\d+)\s*(m|min|mins|minute|minutes|h|hr|hrs|hour|hours)$", tf_str)
+        if not match:
+            embed = discord.Embed(
+                title="⚠️ Invalid Timeframe Format",
+                description=(
+                    "You entered an invalid timeframe.\n\n"
+                    "**Valid formats:**\n"
+                    "`30m`, `30 minutes`, `2h`, `2 hours`\n\n"
+                    "**Examples:**\n"
+                    "`!analyze btc 30m`\n"
+                    "`!analyze btc 2 hours`\n"
+                ),
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
 
-    # ------------------- (rest of your existing logic) -------------------
-    # 1) Fetch news
+        time_value = int(match.group(1))
+        time_unit = match.group(2)
+
+        # Normalize unit map
+        unit_map = {
+            "m": 60, "min": 60, "mins": 60, "minute": 60, "minutes": 60,
+            "h": 3600, "hr": 3600, "hrs": 3600, "hour": 3600, "hours": 3600,
+        }
+        seconds_ahead = time_value * unit_map[time_unit]
+
+        # Normalize display (always use plural if > 1)
+        if "m" in time_unit:
+            horizon_label = f"{time_value} minute{'s' if time_value > 1 else ''}"
+        else:
+            horizon_label = f"{time_value} hour{'s' if time_value > 1 else ''}"
+
+    # ---- News sentiment ----
     articles = fetch_crypto_news(10)
     if not articles:
         return await ctx.send(f"⚠️ Couldn’t fetch news for `{coin}` analysis.")
 
-    # 2) Sentiment
-    pos_words = ["surge", "gain", "rally", "bull", "record", "up", "boost", "optimistic"]
-    neg_words = ["drop", "dip", "slump", "bear", "decline", "down", "crash", "pessimistic"]
+    pos_words = ["surge", "gain", "rally", "bull", "record", "up", "boost", "optimistic", "breakout", "institutional", "ETF", "upgrade", "partnership"]
+    neg_words = ["drop", "dip", "slump", "bear", "decline", "down", "crash", "pessimistic", "hack", "ban", "probe", "lawsuit", "de-list"]
     pos_count = neg_count = 0
     for art in articles:
-        title = art["title"].lower()
+        title = (art.get("title") or "").lower()
         pos_count += sum(1 for w in pos_words if w in title)
         neg_count += sum(1 for w in neg_words if w in title)
+    news_strength = "Bullish" if pos_count > neg_count else "Bearish" if neg_count > pos_count else "Neutral"
 
-    # 3) Market activity
+    # ---- Market trades ----
     try:
-        trades = client.get_trades(pair, 500)
+        trades = client.get_trades(pair, 500)  # [{date, type, price, amount, total}]
     except Exception as e:
         return await ctx.send(f"⚠️ Failed to fetch market data for `{coin}`: {e}")
-    buy_count = sum(1 for t in trades if t["type"] == "buy")
-    sell_count = sum(1 for t in trades if t["type"] == "sell")
 
-    # 4) Current price
+    if not trades:
+        return await ctx.send(f"No trades returned for `{pair}`.")
+
+    # Ensure chronological order
+    trades = sorted(trades, key=lambda t: float(t["date"]))
+
+    # Extract arrays
+    times = np.array([float(t["date"]) for t in trades], dtype=float)
+    prices = np.array([float(t["price"]) for t in trades], dtype=float)
+    amounts = np.array([float(t["amount"]) for t in trades], dtype=float)
+    types = [t["type"] for t in trades]
+
+    # Side splits
+    buy_mask = np.array([tp == "buy" for tp in types])
+    sell_mask = ~buy_mask
+
+    buy_count = int(buy_mask.sum())
+    sell_count = int(sell_mask.sum())
+    buy_vol = float(amounts[buy_mask].sum()) if buy_count else 0.0
+    sell_vol = float(amounts[sell_mask].sum()) if sell_count else 0.0
+    avg_buy_size = buy_vol / buy_count if buy_count else 0.0
+    avg_sell_size = sell_vol / sell_count if sell_count else 0.0
+    flow_ratio = safe_ratio(buy_count, sell_count)  # >1 favors buyers
+
+    # ---- Current ticker ----
     try:
         ticker = client.get_ticker(pair)
         current_price = float(ticker["ticker"]["last"])
-    except Exception as e:
-        current_price = None
+    except Exception:
+        current_price = prices[-1] if len(prices) else None
 
-    # 5) Price prediction
+    # ---- Momentum (slope) & prediction ----
     predicted_price = None
+    price_trend = None
     try:
-        times = np.array([float(t["date"]) for t in trades])
-        prices = np.array([float(t["price"]) for t in trades])
         t0 = times.min()
-        times -= t0
+        t_rel = times - t0  # seconds from first trade
+        slope, intercept = np.polyfit(t_rel, prices, 1)  # price per second
+        future_t = (t_rel.max() + seconds_ahead)
+        predicted_price = float(slope * future_t + intercept)
 
-        slope, intercept = np.polyfit(times, prices, 1)
-        future_t = (times.max() + seconds_ahead)
-        predicted_price = slope * future_t + intercept
+        if current_price:
+            # Convert slope to % per hour
+            pct_per_hour = (slope * 3600.0) / current_price * 100.0
+            if predicted_price > current_price * 1.02:
+                price_trend = "Expected Rise"
+            elif predicted_price < current_price * 0.98:
+                price_trend = "Expected Drop"
+            else:
+                price_trend = "Flat"
+        else:
+            pct_per_hour = 0.0
     except Exception:
         predicted_price = None
+        pct_per_hour = 0.0
+        price_trend = None
 
-    # --- Build Advice ---
-    news_strength = "Bullish" if pos_count > neg_count else "Bearish" if neg_count > pos_count else "Neutral"
-    market_strength = "More Buyers" if buy_count > sell_count else "More Sellers" if sell_count > buy_count else "Balanced"
-    price_trend = None
-    if predicted_price and current_price:
-        if predicted_price > current_price * 1.02:
-            price_trend = "Expected Rise"
-        elif predicted_price < current_price * 0.98:
-            price_trend = "Expected Drop"
-        else:
-            price_trend = "Flat"
+    # ---- Trend (SMA crossover) ----
+    sma_short = np.mean(prices[-50:]) if len(prices) >= 50 else np.mean(prices)
+    sma_long = np.mean(prices[-200:]) if len(prices) >= 200 else np.mean(prices)
+    trend_state = "Uptrend" if sma_short >= sma_long else "Downtrend" if sma_short < sma_long else "Sideways"
 
-    # Score
+    # ---- Volatility & range posture ----
+    lookback = prices[-200:] if len(prices) >= 200 else prices
+    volatility_pct = np.std(lookback) / np.mean(lookback) * 100.0 if len(lookback) > 1 else 0.0
+    recent = prices[-100:] if len(prices) >= 100 else prices
+    rng_low, rng_high = float(np.min(recent)), float(np.max(recent))
+    if current_price:
+        range_pos_pct = (current_price - rng_low) / (rng_high - rng_low) * 100.0 if rng_high > rng_low else 50.0
+    else:
+        range_pos_pct = 50.0
+
+    # ---- Recent window comparison (acceleration) ----
+    now_ts = times.max()
+    recent_window = 30 * 60  # 30 minutes
+    prev_cut = now_ts - 2 * recent_window
+    mid_cut = now_ts - recent_window
+
+    prev_mask = (times >= prev_cut) & (times < mid_cut)
+    recent_mask = (times >= mid_cut)
+
+    def side_stats(mask):
+        if not mask.any():
+            return 0, 0.0
+        sub_types = np.array(types)[mask]
+        sub_amounts = amounts[mask]
+        b = float(sub_amounts[sub_types == "buy"].sum())
+        s = float(sub_amounts[sub_types == "sell"].sum())
+        return b, s
+
+    recent_b_vol, recent_s_vol = side_stats(recent_mask)
+    prev_b_vol, prev_s_vol = side_stats(prev_mask)
+    buy_accel = pct_change(recent_b_vol, prev_b_vol) if prev_b_vol else (100.0 if recent_b_vol > 0 else 0.0)
+    sell_accel = pct_change(recent_s_vol, prev_s_vol) if prev_s_vol else (100.0 if recent_s_vol > 0 else 0.0)
+
+    # ---- Scoring & confidence ----
     score = 0
     score += 1 if news_strength == "Bullish" else -1 if news_strength == "Bearish" else 0
-    score += 1 if market_strength == "More Buyers" else -1 if market_strength == "More Sellers" else 0
-    score += 1 if price_trend == "Expected Rise" else -1 if price_trend == "Expected Drop" else 0
+    score += 1 if flow_ratio > 1.1 else -1 if flow_ratio < 0.9 else 0
+    score += 1 if avg_buy_size > avg_sell_size * 1.1 else -1 if avg_buy_size * 1.1 < avg_sell_size else 0
+    score += 1 if pct_per_hour > 1.0 else -1 if pct_per_hour < -1.0 else 0
+    score += 1 if trend_state == "Uptrend" else -1 if trend_state == "Downtrend" else 0
+    # Range posture: buying low in range or selling high in range is favorable
+    if range_pos_pct <= 30.0:
+        score += 1  # near support
+    elif range_pos_pct >= 70.0:
+        score -= 1  # near resistance
 
-    if score >= 2:
-        advice, color = "Strong Buy 📈", 0xFFC30B
-    elif score == 1:
-        advice, color = "Buy ✅", 0x118C4F
-    elif score == 0:
-        advice, color = "Hold 🤔", 0xFFFB7
+    # Confidence weighting
+    confidence = 50
+    confidence += 10 if news_strength != "Neutral" else 0
+    confidence += 10 if abs(pct_per_hour) >= 1.0 else 0
+    confidence += 10 if abs(flow_ratio - 1.0) >= 0.2 else 0
+    confidence -= 10 if volatility_pct >= 5.0 else 0
+    confidence -= 10 if len(trades) < 150 else 0
+    confidence = max(5, min(95, confidence))
+
+    # Final advice
+    if score >= 3:
+        advice, color = "📈 Strong Buy", 0x2ECC71
+    elif score == 2:
+        advice, color = "✅ Buy", 0x2ECC71
+    elif score == 1 or score == 0:
+        advice, color = "🤔 Hold", 0xF1C40F
     elif score == -1:
-        advice, color = "Sell ⚠️", 0x800000
+        advice, color = "⚠️ Sell", 0xE74C3C
     else:
-        advice, color = "Strong Sell 🚨", 0xDBF27
+        advice, color = "🚨 Strong Sell", 0xE74C3C
 
-    # Reasoning
-    reasoning = []
-    reasoning.append(f"📰 **News** sentiment is `{news_strength}` ({pos_count} positive vs {neg_count} negative).")
-    reasoning.append(f"📊 **Market activity** shows `{market_strength}` ({buy_count} buys vs {sell_count} sells).")
+    # ---- Reasoning text ----
+    bullets = []
+    bullets.append(f"📰 **News:** `{news_strength}` (🟢 {pos_count} positive / 🔴 {neg_count} negative).")
+    bullets.append(f"📊 **Order Flow:** {buy_count} buys vs {sell_count} sells "
+                   f"(ratio {safe_ratio(buy_count, sell_count):.2f}; "
+                   f"avg size {avg_buy_size:.6f} vs {avg_sell_size:.6f}).")
+    if prev_b_vol or prev_s_vol:
+        bullets.append(f"⚡ **Recent Shift (30m):** Buy vol {fmt_pct(buy_accel)} vs Sell vol {fmt_pct(sell_accel)} vs previous 30m.")
+    bullets.append(f"📈 **Momentum:** ~{fmt_pct(pct_per_hour)} per hour "
+                   f"({('rise' if pct_per_hour>0 else 'drop') if abs(pct_per_hour)>=0.1 else 'flat'}).")
+    bullets.append(f"🧭 **Trend (SMA 50/200):** {trend_state} (SMA50={sma_short:,.0f}, SMA200={sma_long:,.0f}).")
+    bullets.append(f"📐 **Volatility:** {fmt_pct(volatility_pct)} (higher reduces confidence).")
+    if current_price is not None:
+        bullets.append(f"📦 **Range Position (last 100 trades):** {fmt_pct(range_pos_pct)} of range "
+                       f"[{rng_low:,.0f}–{rng_high:,.0f}] (lower=near support).")
     if predicted_price and current_price:
-        pct = (predicted_price - current_price) / current_price * 100
-        reasoning.append(f"📈 **Price trend** indicates `{price_trend}` with a projected change of {pct:.2f}%.Over the next **{time_value} {time_unit}** ")
+        ppct = pct_change(predicted_price, current_price)
+        bullets.append(f"🔮 **Prediction ({horizon_label}):** {predicted_price:,.2f} IDR "
+                       f"({fmt_pct(ppct)}) based on linear trend.")
     else:
-        reasoning.append("💹 Could not predict future price due to insufficient data.")
+        bullets.append("🔮 **Prediction:** Not available due to insufficient data.")
 
-    reasoning_text = "\n".join(reasoning)
+    bullets.append(f"🧠 **Confidence:** {confidence}/100 (data quality, trend strength, and volatility adjusted).")
 
-    # Embed
+    reasoning_text = "\n".join(bullets)
+
+    # ---- Build embed ----
     embed = discord.Embed(
         title=f"🔍 Analysis for {coin.upper()}",
-        description=f"**Advice:** {advice}\n\n{reasoning_text}",
+        description=f"**Advice:** {advice}\n\n**Why this advice:**\n{reasoning_text}",
         color=color,
         timestamp=ctx.message.created_at
     )
 
-    if current_price:
-        embed.add_field(
-            name="Current Price",
-            value=f"₿ {current_price:,.2f} IDR",
-            inline=False
-        )
-    if predicted_price:
-        embed.add_field(
-            name="Predicted Price",
-            value=f"₿ {predicted_price:,.2f} IDR `(in {time_value} {time_unit})`",
-            inline=False
-        )
+    if current_price is not None:
+        embed.add_field(name="Current Price", value=f"{current_price:,.2f} IDR", inline=True)
+    if predicted_price is not None:
+        embed.add_field(name="Predicted Price", value=f"{predicted_price:,.2f} IDR in {horizon_label}", inline=True)
 
-    top_titles = "\n".join(f"• {a['title']}" for a in articles[:3])
-    embed.add_field(name="Top News Headlines", value=top_titles, inline=False)
-    embed.set_footer(text=f"Analyzed from 10 articles & 500 trades | Prediction: {time_value} {time_unit}")
+    # Top headlines
+    top_titles = "\n".join(f"• {(a.get('title') or '')[:120]}" for a in articles[:3])
+    if top_titles.strip():
+        embed.add_field(name="Top News Headlines", value=top_titles, inline=False)
+
+    embed.set_footer(text=f"Data: 10 news items & {len(trades)} trades | Horizon: {horizon_label}")
 
     await ctx.send(embed=embed)
 
@@ -620,7 +776,7 @@ async def trending(ctx):
             name=f"{coin['name']} ({coin['symbol'].upper()})",
             value=(
                 f"Rank: #{coin['market_cap_rank']}\n"
-                f"Price (BTC): {coin['price_btc']:.8f}\n"
+                f"Price (BTC): {coin['price_idr']:.8f}\n"
                 f"[View on CoinGecko]({url})"
             ),
             inline=False
