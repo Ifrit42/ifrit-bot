@@ -87,3 +87,102 @@ class PairsPaginator(discord.ui.View):
         if self.page < self.total_pages - 1:
             self.page += 1
             await interaction.response.edit_message(embed=self.make_embed(), view=self)
+
+class PricesPaginator(discord.ui.View):
+    def __init__(self, pairs: list[str], fetch_price, per_page: int = 10):
+        super().__init__(timeout=120)
+        self.pairs = pairs
+        self.fetch_price = fetch_price  # callback to fetch prices
+        self.per_page = per_page
+        self.page = 0
+        self.total_pages = (len(pairs) - 1) // per_page + 1
+
+    def make_embed(self) -> discord.Embed:
+        start = self.page * self.per_page
+        end = start + self.per_page
+        page_pairs = self.pairs[start:end]
+
+        embed = discord.Embed(
+            title=f"📊 Indodax Market",
+            description="Latest market prices",
+            color=discord.Color.green()
+        )
+
+        for pair in page_pairs:
+            symbol, price = self.fetch_price(pair)
+            if price:
+                embed.add_field(
+                    name=symbol.upper(),
+                    value=f"Rp {price:,.0f}" if "idr" in pair else f"${price:,.2f}",
+                    inline=True
+                )
+            else:
+                embed.add_field(name=symbol.upper(), value="❌ Error", inline=True)
+        embed.set_footer(text=f"Updated in real-time from Indodax. Page {self.page + 1}/{self.total_pages}")
+
+        return embed
+
+class PricesPaginator(discord.ui.View):
+    def __init__(self, pairs: list[str], fetch_price, per_page: int = 10):
+        super().__init__(timeout=120)
+        self.pairs = pairs
+        self.fetch_price = fetch_price
+        self.per_page = per_page
+        self.page = 0
+        self.total_pages = (len(pairs) - 1) // per_page + 1
+        self.update_buttons()  # set initial state
+
+    def make_embed(self) -> discord.Embed:
+        start = self.page * self.per_page
+        end = start + self.per_page
+        page_pairs = self.pairs[start:end]
+
+        embed = discord.Embed(
+            title="📊 Indodax Market",
+            description="Latest market prices",
+            color=discord.Color.green()
+        )
+
+        for pair in page_pairs:
+            symbol, price = self.fetch_price(pair)
+            if price:
+                embed.add_field(
+                    name=symbol.upper(),
+                    value=f"Rp {price:,.0f}" if "idr" in pair else f"${price:,.2f}",
+                    inline=True
+                )
+            else:
+                embed.add_field(name=symbol.upper(), value="❌ Error", inline=True)
+
+        embed.set_footer(
+            text=f"Updated in real-time from Indodax. Page {self.page + 1}/{self.total_pages}"
+        )
+
+        return embed
+
+    def update_buttons(self):
+        # Disable Prev if on first page, Next if on last page
+        self.prev_button.disabled = self.page <= 0
+        self.next_button.disabled = self.page >= self.total_pages - 1
+
+    @discord.ui.button(label="◀ Prev", style=discord.ButtonStyle.secondary)
+    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.page > 0:
+            self.page -= 1
+        self.update_buttons()
+        # acknowledge immediately
+        await interaction.response.defer()
+        # then safely edit
+        await interaction.message.edit(embed=self.make_embed(), view=self)
+
+
+    @discord.ui.button(label="Next ▶", style=discord.ButtonStyle.secondary)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.page < self.total_pages - 1:
+            self.page += 1
+        self.update_buttons()
+        # acknowledge immediately
+        await interaction.response.defer()
+        # then safely edit
+        await interaction.message.edit(embed=self.make_embed(), view=self)
+
