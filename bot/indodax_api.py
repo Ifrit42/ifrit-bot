@@ -78,6 +78,15 @@ class IndodaxClient:
             return response.json()
         except ValueError:
             raise RuntimeError("Invalid JSON response from ticker API")
+    
+    # 2nd version of get_ticker to avoid issues with underscores for crypto prices
+    def get_ticker_v2(self, pair: str) -> dict:
+        """New fixed version."""
+        formatted_pair = pair.replace("_", "")
+        url = f"https://indodax.com/api/ticker/{formatted_pair}"
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
 
     def trade(self, pair, type_, price, amount):
         """Place a trade order on Indodax."""
