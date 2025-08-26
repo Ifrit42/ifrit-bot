@@ -5,6 +5,8 @@ import time
 import discord
 from discord.ext import commands
 from discord import Embed
+from discord.ext import tasks
+from indodax_api import IndodaxClient
 from prettytable import PrettyTable
 from dotenv import load_dotenv
 import numpy as np
@@ -12,6 +14,7 @@ from functools import wraps
 import asyncio
 import requests
 import aiohttp
+import math
 
 
 from alert_storage import load_alerts, save_alerts, get_pairs
@@ -92,6 +95,42 @@ def with_typing(func):
             return await func(ctx, *args, **kwargs)
     return wrapped
 
+# Stoploss background task
+async def stoploss_monitor():
+    await bot.wait_until_ready()
+    while not bot.is_closed():
+        try:
+            with open("pending_orders.json", "r") as f:
+                data = json.load(f)
+
+            if "stoploss" in data:
+                for sl in data["stoploss"]:
+                    if not sl.get("active"):
+                        continue
+
+                    current_price = get_last_price(sl["pair"])
+                    if current_price <= sl["stop_price"]:
+                        # Notify user
+                        user = bot.get_user(sl["user"])
+                        if user:
+                            await user.send(
+                                f"🛑 STOPLOSS TRIGGERED for {sl['coin']}!\n"
+                                f"Price dropped to {current_price:,.0f} IDR (Stop: {sl['stop_price']:,.0f})"
+                            )
+                        sl["active"] = False  # deactivate after triggering
+
+            # Save updates
+            with open("pending_orders.json", "w") as f:
+                json.dump(data, f, indent=2)
+
+        except Exception as e:
+            print(f"[Stoploss Monitor Error] {e}")
+
+        await asyncio.sleep(30)  # check every 30s
+
+    bot.loop.create_task(stoploss_monitor())
+
+
 # Monitor Alerts
 # This background task checks for alerts every 15 seconds
 
@@ -134,6 +173,32 @@ async def monitor_alerts():
 
         # Yield control so Discord heartbeats can run
         await asyncio.sleep(15)
+
+@tasks.loop(seconds=15)
+async def check_pending_orders():
+    client = IndodaxClient()
+    data = load_pending_orders()
+    changed = False
+
+    for user_id, orders in data.items():
+        for order in orders:
+            if order["status"] == "pending":
+                trades = client.get_trade_history(order["pair"], count=20)
+
+                # Check if order_id appears in trade history
+                for t in trades:
+                    if str(t.get("order_id")) == str(order["order_id"]):
+                        if float(t.get("remain", 0)) == 0:  # fully filled
+                            order["status"] = "completed"
+                            changed = True
+
+                            user = await bot.fetch_user(int(user_id))
+                            await user.send(
+                                f"✅ Your buy order {order['order_id']} for {order['amount']} {order['pair']} has been filled!"
+                            )
+
+    if changed:
+        save_pending_orders(data)
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -206,6 +271,14 @@ async def on_command_error(ctx, error):
             usage_msg = "❌ Usage: `!sell_list` to list all your active/pending sell orders."
         elif ctx.command.name == "cancelsell":
             usage_msg = "❌ Usage: `!cancelsell <order_id>` to cancel a specific sell order.\nExample: `!cancelsell 987654`"
+        elif ctx.command.name == "maintenance":
+            usage_msg = "❌ Usage: `!maintenance on/off` to toggle maintenance mode (Admin only)."
+        elif ctx.command.name == "help":
+            usage_msg = "❌ Usage: `!help` to see the list of available commands."
+        elif ctx.command.name == "ping":
+            usage_msg = "❌ Usage: `!ping` to check bot responsiveness."
+        elif ctx.command.name == "trade_history":
+            usage_msg = "❌ Usage: `!trade_history <pair> [count]` to fetch your trade history for a specific pair."
         else:
             usage_msg = f"❌ Missing argument(s) for `{ctx.command}`"
 
@@ -639,6 +712,13 @@ async def analyze(ctx, coin: str, *timeframe):
     else:
         advice, color = "🚨 Strong Sell", 0xE74C3C
 
+        # ---- Entry/Exit/Stoploss ----
+    entry_price = rng_low  # Support
+    exit_price = rng_high  # Resistance
+    if predicted_price and predicted_price > current_price:
+        exit_price = predicted_price  # use prediction if higher
+    stoploss_price = rng_low * 0.97 if rng_low else None  # 3% below support
+
     # ---- Reasoning text ----
     bullets = []
     bullets.append(f"📰 **News:** `{news_strength}` (🟢 {pos_count} positive / 🔴 {neg_count} negative).")
@@ -673,15 +753,20 @@ async def analyze(ctx, coin: str, *timeframe):
         timestamp=ctx.message.created_at
     )
 
+    # Add prices
     if current_price is not None:
-        embed.add_field(name="Current Price", value=f"{current_price:,.2f} IDR", inline=True)
-    if predicted_price is not None:
-        embed.add_field(name="Predicted Price", value=f"{predicted_price:,.2f} IDR in {horizon_label}", inline=True)
+        embed.add_field(name="💵 Current Price", value=f"{current_price:,.2f} IDR", inline=True)
+    if entry_price is not None:
+        embed.add_field(name="🎯 Entry Price", value=f"{entry_price:,.2f} IDR", inline=True)
+    if exit_price is not None:
+        embed.add_field(name="💰 Exit Price", value=f"{exit_price:,.2f} IDR", inline=True)
+    if stoploss_price is not None:
+        embed.add_field(name="🛑 Stoploss", value=f"{stoploss_price:,.2f} IDR", inline=True)
 
     # Top headlines
     top_titles = "\n".join(f"• {(a.get('title') or '')[:120]}" for a in articles[:3])
     if top_titles.strip():
-        embed.add_field(name="Top News Headlines", value=top_titles, inline=False)
+        embed.add_field(name="📰 Top News Headlines", value=top_titles, inline=False)
 
     embed.set_footer(text=f"Data: 10 news items & {len(trades)} trades | Horizon: {horizon_label}")
 
@@ -1295,6 +1380,118 @@ async def cancel_sell_command(ctx, order_id: str):
             color=0xE74C3C
         )
         await ctx.send(embed=embed)
+
+@bot.command(name="auto_stoploss", help="!auto_stoploss <coin> <percent>")
+@maintenance_check()
+@with_typing
+async def auto_stoploss(ctx, coin: str, percent: float):
+    pair = f"{coin.lower()}_idr"
+    try:
+        current_price = get_last_price(pair)
+        stop_price = current_price * (1 - percent / 100.0)
+
+        stoploss_entry = {
+            "coin": coin.upper(),
+            "pair": pair,
+            "stop_price": stop_price,
+            "percent": percent,
+            "user": ctx.author.id,
+            "active": True
+        }
+
+        # Save to pending_orders.json
+        try:
+            with open("pending_orders.json", "r+") as f:
+                data = json.load(f)
+                data.setdefault("stoploss", []).append(stoploss_entry)
+                f.seek(0)
+                json.dump(data, f, indent=2)
+        except FileNotFoundError:
+            with open("pending_orders.json", "w") as f:
+                json.dump({"stoploss": [stoploss_entry]}, f, indent=2)
+
+        await ctx.send(
+            f"🛑 Stoploss set for {coin.upper()} at {stop_price:,.0f} IDR "
+            f"({percent:.1f}% below current {current_price:,.0f})"
+        )
+    except Exception as e:
+        await ctx.send(f"⚠️ Failed to set stoploss: {e}")
+
+@bot.command(
+    name="trade_history",
+    help="!trade_history <coin> [count] — Show your recent trades for a coin."
+)
+@with_typing
+async def trade_history(ctx, coin: str, count: int = 10):
+    client = IndodaxClient()
+    try:
+        pair = f"{coin.lower()}_idr"
+        trades = client.get_trade_history(pair, count)
+
+        if "return" not in trades or "trades" not in trades["return"]:
+            await ctx.send(f"⚠️ No trade history found for {coin.upper()}.")
+            return
+
+        trade_list = trades["return"]["trades"]
+        if not trade_list:
+            await ctx.send(f"⚠️ No trades found for {coin.upper()}.")
+            return
+
+        # Split trades into pages (max 5 trades per page to keep messages short)
+        trades_per_page = 5
+        pages = math.ceil(len(trade_list) / trades_per_page)
+
+        async def send_page(page: int):
+            start = page * trades_per_page
+            end = start + trades_per_page
+            subset = trade_list[start:end]
+
+            msg = f"📊 Trade History for **{coin.upper()}** (Page {page+1}/{pages}):\n"
+            for t in subset:
+                side = "🟢 BUY" if t["type"] == "buy" else "🔴 SELL"
+                msg += (
+                    f"- {side} {t['amount']} @ {t['rate']} "
+                    f"(Fee: {t.get('fee', 'N/A')})\n"
+                )
+            return msg
+
+        # Send first page
+        current_page = 0
+        message = await ctx.send(await send_page(current_page))
+
+        # Add navigation reactions
+        if pages > 1:
+            await message.add_reaction("⬅️")
+            await message.add_reaction("➡️")
+
+            def check(reaction, user):
+                return (
+                    user == ctx.author
+                    and reaction.message.id == message.id
+                    and str(reaction.emoji) in ["⬅️", "➡️"]
+                )
+
+            while True:
+                try:
+                    reaction, user = await bot.wait_for(
+                        "reaction_add", timeout=60.0, check=check
+                    )
+
+                    if str(reaction.emoji) == "➡️" and current_page < pages - 1:
+                        current_page += 1
+                        await message.edit(content=await send_page(current_page))
+
+                    elif str(reaction.emoji) == "⬅️" and current_page > 0:
+                        current_page -= 1
+                        await message.edit(content=await send_page(current_page))
+
+                    await message.remove_reaction(reaction, user)
+
+                except asyncio.TimeoutError:
+                    break  # stop listening after 60s of inactivity
+
+    except Exception as e:
+        await ctx.send(f"❌ Error fetching trade history: {e}")
 
 if __name__ == "__main__":
     bot.run(TOKEN)
