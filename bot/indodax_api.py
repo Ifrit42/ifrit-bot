@@ -24,9 +24,7 @@ class IndodaxClient:
         self.api_url = "https://indodax.com/tapi"
 
     def _get_server_time(self):
-        """
-        Fetch Indodax server time in seconds since epoch.
-        """
+        """Fetch Indodax server time in seconds since epoch."""
         try:
             resp = requests.get("https://indodax.com/api/server_time")
             resp.raise_for_status()
@@ -41,10 +39,7 @@ class IndodaxClient:
             params = {}
 
         params["method"] = method
-
-        # Always use server time to avoid "Invalid timestamp"
-        server_time = self._get_server_time()
-        params["timestamp"] = server_time
+        params["timestamp"] = self._get_server_time()
 
         post_data = urlencode(params)
         sign = hmac.new(self.secret, post_data.encode(), hashlib.sha512).hexdigest()
@@ -66,22 +61,15 @@ class IndodaxClient:
         return data
 
     def get_account_info(self):
-        """Fetch your account details (balances, user info)."""
         return self._post("getInfo")
 
     def get_ticker(self, pair: str) -> dict:
-        """Fetch ticker data for a trading pair, e.g. 'btc_idr'."""
         url = f"https://indodax.com/api/{pair}/ticker"
         response = requests.get(url)
         response.raise_for_status()
-        try:
-            return response.json()
-        except ValueError:
-            raise RuntimeError("Invalid JSON response from ticker API")
-    
-    # 2nd version of get_ticker to avoid issues with underscores for crypto prices
+        return response.json()
+
     def get_ticker_v2(self, pair: str) -> dict:
-        """New fixed version."""
         formatted_pair = pair.replace("_", "")
         url = f"https://indodax.com/api/ticker/{formatted_pair}"
         response = requests.get(url)
@@ -89,7 +77,6 @@ class IndodaxClient:
         return response.json()
 
     def trade(self, pair, type_, price, amount):
-        """Place a trade order on Indodax."""
         params = {
             "pair": pair,
             "type": type_,
@@ -99,15 +86,12 @@ class IndodaxClient:
         return self._post("trade", params)
 
     def get_trades(self, pair: str, limit: int = 100) -> list:
-        """Fetch the most recent market trades for a given pair."""
         url = f"https://indodax.com/api/{pair}/trades"
         resp = requests.get(url)
         resp.raise_for_status()
-        data = resp.json()
-        return data[:limit]
+        return resp.json()[:limit]
 
     def get_balance(self, coin: str) -> float:
-        """Return available balance for a given coin."""
         info = self.get_account_info()
         balances = info["return"]["balance"]
         return float(balances.get(coin.lower(), 0))
@@ -117,8 +101,6 @@ class IndodaxClient:
         amount = float(amount)
         total_idr = price * amount
 
-        print(f"[DEBUG] Checking min order: Price={price}, Amount={amount}, Total={total_idr}")
-
         if total_idr < 10000:
             raise ValueError(f"Minimum order 10,000 IDR — Your total: {total_idr}")
 
@@ -126,30 +108,55 @@ class IndodaxClient:
             "pair": pair,
             "type": "buy",
             "price": price,
-            "idr": total_idr  # <-- send IDR instead of amount
+            "idr": total_idr  # use IDR instead of amount
         }
         return self._post("trade", params)
 
     def create_sell_order(self, pair, price, amount):
-        """Create a sell order on Indodax."""
         params = {
             "pair": pair,
             "type": "sell",
-            "price": price,
-            "amount": amount
+            "price": float(price),
+            "amount": float(amount)
         }
         return self._post("trade", params)
 
     def cancel_order(self, pair, order_id, type_):
-        """
-        Cancel an open order on Indodax.
-        :param pair: str - trading pair, e.g. 'doge_idr'
-        :param order_id: int - order ID
-        :param type_: str - 'buy' or 'sell'
-        """
         params = {
             "pair": pair,
             "order_id": order_id,
             "type": type_
         }
         return self._post("cancelOrder", params)
+
+    def get_trade_history(self, pair: str, count: int = 10) -> list:
+        """
+        Fetch user's trade history for a given pair.
+        Returns a list of trades or [] if none.
+        """
+        params = {
+            "pair": pair,
+            "count": count
+        }
+
+        data = self._post("tradeHistory", params)
+
+        try:
+            raw_trades = data.get("return", {}).get("trades", [])
+            # Handle case: trades may be a dict keyed by trade_id
+            if isinstance(raw_trades, dict):
+                trades = list(raw_trades.values())
+            elif isinstance(raw_trades, list):
+                trades = raw_trades
+            else:
+                print(f"[DEBUG] Unexpected tradeHistory format: {data}")
+                return []
+
+            # Normalize keys so missing "amount" won’t break your code
+            for t in trades:
+                t.setdefault("amount", t.get("remain", "0"))
+
+            return trades
+        except Exception as e:
+            print(f"[ERROR] Parsing trade history failed: {e}, raw={data}")
+            return []
