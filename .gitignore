@@ -2,3 +2,20 @@ bot/.env
 /.env
 ifrit-bot/.env
 Ifrit-AI/.env
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Python
+__pycache__/
+*.pkl
+*.pyc
+*.pyo
+*.pyd
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
