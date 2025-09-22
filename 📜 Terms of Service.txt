@@ -1,4 +1,15 @@
 📜 Terms of Service
+This Terms of Service is for multiple bots that Ifrit has created make sure to scroll to find the
+bot that you are using !!
+
+Bot List :
+[1. Ifrit Bot] - Ifrit's crypto trading bot
+[2. LoveIF Bot] - Ifrit's dating bot
+
+[This list will continute to grow depending on our project - Ifrit]
+
+------------------------------------------------------------------------------------------
+
 Effective Date: [August 1st 2025 - Today]
 Bot Name: [Ifrit Bot]
 By using [Ifrit Bot] ("the Bot"), you agree to the following Terms of Service. If you do not agree, please refrain from using the Bot.
@@ -28,3 +39,17 @@ We are not liable for any losses, damages, or consequences resulting from the us
 - Misinterpretation of data
 6. Changes to Terms
 We reserve the right to update these Terms at any time. Continued use of the Bot after changes implies acceptance of the new Terms.
+
+----------------------------------------------------------------------------
+
+Effective Date: [September 22nd 2025 - Today]
+Bot Name: [LoveIF Bot]
+By using [LoveIF Bot] ("the Bot"), you agree to the following Terms of Service. If you do not agree, please refrain from using the Bot.
+1. Usage
+You must follow Discord’s Terms of Service and Community Guidelines while using the Bot.
+You agree not to use the Bot for illegal, harmful, or malicious activities.
+The Bot may stop working, be removed, or be updated at any time without prior notice.
+2. Availability
+The Bot is provided free of charge and with no guarantee of uptime, accuracy, or reliability.
+3. Limitation of Liability
+The creator of the Bot is not responsible for any damages, losses, or issues caused by the use of the Bot.
