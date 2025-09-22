@@ -1,4 +1,15 @@
 🔐 Privacy Policy
+This Privacy Policy is for multiple bots that Ifrit has created make sure to scroll to find the
+bot that you are using !!
+
+Bot List :
+[1. Ifrit Bot] - Ifrit's crypto trading bot
+[2. LoveIF Bot] - Ifrit's dating bot
+
+[This list will continute to grow depending on our project - Ifrit]
+
+------------------------------------------------------------------------------------------
+
 Effective Date: [August 1st 2025 - Today]
 Bot Name: [Ifrit Bot]
 Your privacy is important to us. This Privacy Policy outlines how the Bot handles user data.
@@ -25,3 +36,23 @@ Usage logs may be stored for up to [Insert Duration] for performance monitoring.
 We implement reasonable security measures to protect data. However, no method of transmission or storage is 100% secure.
 6. Changes to Policy
 We may update this Privacy Policy from time to time. Continued use of the Bot implies acceptance of the updated policy.
+
+------------------------------------------------------------------------------------------
+
+Effective Date: [September 22nd 2025 - Today]
+Bot Name: [LoveIF Bot]
+Your privacy is important to us. This Privacy Policy outlines how the Bot handles user data.
+1. Data We Collect
+The Bot may temporarily store your messages in order to generate replies.
+A user ID is stored to associate you with your conversation history.
+No sensitive personal data is intentionally collected.
+2. How Data is Used
+Stored messages are only used to maintain conversation context.
+Data is not shared with third parties.
+3. Data Retention
+Conversation history is stored locally by the bot owner.
+You may request your history to be deleted by using the forgetme command.
+4. Security
+While reasonable measures are taken to protect stored data, no system is 100% secure.
+5. Contact
+For questions or concerns about the Bot, please contact the bot owner: [your Discord username/email/website].
