@@ -56,3 +56,54 @@ You may request your history to be deleted by using the forgetme command.
 While reasonable measures are taken to protect stored data, no system is 100% secure.
 5. Contact
 For questions or concerns about the Bot, please contact the bot owner: [your Discord username/email/website].
+
+----------------------------------------------------------------------------
+
+Effective Date: [September 22nd 2025 - Today]
+Bot Name: [LoveIF Bot]
+1. Data We Collect
+BayuMotor Bot collects the minimum data needed to operate:
+Automatically via Discord:
+•	User ID (for command processing)
+•	Username (for replying)
+•	Message content (only when using prefix commands, e.g., !ask)
+•	Slash command interactions
+We do NOT collect:
+❌ Email
+❌ Password
+❌ Payment information
+❌ Location
+❌ Phone number
+❌ Private direct messages
+2. How Your Data Is Used
+Data is used only for:
+•	Processing your command
+•	Understanding what you asked
+•	Generating an AI response through local Ollama
+•	Responding inside Discord
+We do not sell, share, or distribute your data to any third party.
+3. Data Storage
+The bot stores no long-term user data.
+•	Commands and messages are processed in real-time
+•	No database is used
+•	No logs are permanently saved
+•	AI responses are generated on the fly and discarded
+4. AI Processing
+AI responses are generated using Ollama, running locally on the bot owner’s system.
+This means:
+•	Your input stays on the owner’s device
+•	Nothing is sent to external cloud AI services
+•	No third parties receive your data
+5. Third-Party Services
+The bot interacts only with:
+•	Discord API
+•	Local Ollama model
+No external analytics or tracking services are used.
+6. Children’s Privacy
+BayuMotor Bot does not target or knowingly collect information from children under 13.
+Use of Discord requires compliance with Discord’s own age restrictions.
+7. Changes to Privacy Policy
+This privacy policy may be updated at any time.
+Continued use of the bot indicates acceptance of the updated terms.
+
+----------------------------------------------------------------------------
