@@ -53,3 +53,51 @@ The Bot may stop working, be removed, or be updated at any time without prior no
 The Bot is provided free of charge and with no guarantee of uptime, accuracy, or reliability.
 3. Limitation of Liability
 The creator of the Bot is not responsible for any damages, losses, or issues caused by the use of the Bot.
+
+----------------------------------------------------------------------------
+
+Effective Date: [November 28th 2025 - Today]
+Bot Name : [BayuMotor]
+1. Acceptance of Terms
+By inviting or using BayuMotor Bot, you agree to these Terms of Service.
+If you do not agree, you must remove the bot from your server and stop using it.
+2. Description of Service
+BayuMotor Bot is a Discord bot that provides:
+•	Honda motorcycle market analysis
+•	Popular/best-selling model breakdown
+•	AI-powered insights using Ollama (running locally on the bot owner’s system)
+•	General motorcycle comparison & predictions
+The bot is offered “as is”, with no guarantees of accuracy or uptime.
+3. User Responsibilities
+You agree NOT to use the bot for:
+•	Illegal activities
+•	Harassment, spam, or abuse
+•	Automated scraping that violates Honda branding guidelines
+•	Generating harmful or unsafe content through AI requests
+•	Bypassing Discord’s API restrictions
+Users are responsible for how they interact with the bot.
+4. Availability and Changes
+The bot owner may:
+•	Add or remove features
+•	Update the bot
+•	Interrupt service for maintenance
+•	Shut down the bot permanently
+without prior notice.
+5. Use of AI
+The bot uses Ollama locally, meaning:
+•	AI responses do not leave the bot owner’s machine
+•	The model may produce inaccurate information
+•	Honda market predictions are informational only
+•	Users should not rely on AI outputs for financial/business decisions
+6. Limitation of Liability
+BayuMotor Bot and its developer are not liable for:
+•	Damages caused by inaccurate information
+•	Downtime or service interruptions
+•	Any harm caused by user misuse of the bot
+•	Loss of data or failed predictions
+Use the bot at your own risk.
+7. Termination
+You may stop using the bot at any time by removing it from your server.
+The bot owner may revoke access or terminate the service for any reason.
+
+----------------------------------------------------------------------------
