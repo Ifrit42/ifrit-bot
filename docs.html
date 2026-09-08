@@ -43,11 +43,26 @@
       padding: 20px;
       margin-bottom: 20px;
     }
+    .command-section.section-disabled {
+      opacity: 0.85;
+      border: 1px solid rgba(220, 53, 69, 0.4);
+    }
     code {
       background: rgba(255, 255, 255, 0.1);
       padding: 2px 6px;
       border-radius: 4px;
       color: #00ff99;
+    }
+    .status-badge {
+      font-size: 0.7rem;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+    li.cmd-disabled code {
+      color: #ff8a8a;
+    }
+    li.cmd-disabled {
+      opacity: 0.75;
     }
     footer {
       background-color: #23272a;
@@ -120,7 +135,17 @@
   <!-- Header -->
   <div class="container my-5 fade-in">
     <h1 class="text-center mb-4">📜 Commands & Documentation</h1>
-    <p class="text-center text-light">Here’s everything you can do with Ifrit BOT. Use the commands in any Discord channel where the bot is active.</p>
+    <p class="text-center text-light">Here's everything you can do with Ifrit BOT. Use the commands in any Discord channel where the bot is active.</p>
+  </div>
+
+  <!-- Status notice -->
+  <div class="container">
+    <div class="alert" style="background:#1a1111; border: 1px solid rgba(220,53,69,0.4); color:#ffb3b3;" role="alert">
+      ⚠ <strong>Notice:</strong> Direct trading commands (buy/sell/cancel/balance) are temporarily
+      <span class="badge bg-danger status-badge">Disabled</span> while we resolve an access issue with our
+      exchange's trade API. <code>!market</code> and <code>!analyze</code> are unaffected and now run on
+      free public price data.
+    </div>
   </div>
 
   <!-- Commands List -->
@@ -129,48 +154,69 @@
   <div class="command-section fade-in">
     <h2>💲 Crypto Price & Alerts</h2>
     <ul>
-      <li><b><code>!crypto_prices &lt;symbol&gt;</code></b> — Fetch the latest price of a cryptocurrency.<br><i>Example:</i> <code>!price btc</code></li>
-      <li><b><code>!alert &lt;symbol&gt; &lt;target price&gt;</code></b> — Sets a price alert for a coin.<br><i>Example:</i> <code>!alert doge 10000</code> or <code>!alert eth +10%</code></li>
-      <li><b><code>!remove_alert &lt;symbol&gt;</code></b> — Removes an active alert.<br><i>Example:</i> <code>!removealert btc</code></li>
-      <li><b><code>!alert_list</code></b> — Lists all your active alerts.</li>
+      <li><b><code>!crypto_prices</code></b> <span class="badge bg-success status-badge">Active</span> — Fetch current top coin prices.</li>
+      <li><b><code>!price &lt;coin&gt;</code></b> <span class="badge bg-success status-badge">Active</span> — Get the current price of a cryptocurrency.<br><i>Example:</i> <code>!price btc</code></li>
+      <li><b><code>!alert &lt;coin&gt; &lt;price|%&gt;</code></b> <span class="badge bg-success status-badge">Active</span> — Sets a price or percentage alert for a coin.<br><i>Example:</i> <code>!alert doge 10000</code> or <code>!alert eth +10%</code></li>
+      <li><b><code>!remove_alert &lt;index&gt;</code></b> <span class="badge bg-success status-badge">Active</span> — Removes an active alert by its index.<br><i>Example:</i> <code>!remove_alert 1</code></li>
+      <li><b><code>!alert_list</code></b> <span class="badge bg-success status-badge">Active</span> — Lists all your active alerts.</li>
     </ul>
   </div>
 
   <div class="command-section fade-in">
     <h2>📈 Market Insights</h2>
     <ul>
-      <li><b><code>!analyze &lt;symbol&gt;</code></b> — Analyzes the market trend of a coin.<br><i>Example:</i> <code>!analyze btc</code></li>
-      <li><b><code>!trending</code></b> — Shows trending cryptocurrencies.</li>
-      <li><b><code>!market </coin></code></b> — Displays overall market activity & stats.<br><i>Example:</i> <code>!market btc 500</code></li>
+      <li>
+        <b><code>!analyze &lt;coin&gt; [future] [past]</code></b> <span class="badge bg-success status-badge">Active</span>
+        — Buy/sell advice using news sentiment + CoinGecko trend data. <code>future</code> is the prediction horizon (default <code>1h</code>), <code>past</code> is how much history to analyze (default <code>24h</code>).<br>
+        <i>Example:</i> <code>!analyze btc 1h 24h</code> (predict 1h ahead using the past 24h of data)
+      </li>
+      <li><b><code>!trending</code></b> <span class="badge bg-success status-badge">Active</span> — Shows the current top trending cryptocurrencies.</li>
+      <li>
+        <b><code>!market &lt;coin&gt; [timeframe]</code></b> <span class="badge bg-success status-badge">Active</span>
+        — Shows CoinGecko price action (start/now/high/low/% change) over a past time window. Default timeframe is <code>1h</code>.<br>
+        <i>Example:</i> <code>!market btc 6h</code>
+      </li>
     </ul>
+    <p class="text-secondary small mt-2 mb-0">
+      Both commands used to rely on our exchange's raw trade history; they now pull time-series price
+      (and volume, for <code>!analyze</code>) data from CoinGecko instead, so they keep working even
+      while trading is disabled.
+    </p>
   </div>
 
   <div class="command-section fade-in">
     <h2>📰 News & Updates</h2>
     <ul>
-      <li><b><code>!crypto_news &lt;symbol&gt;</code></b> — Shows recent news for a specific coin.<br><i>Example:</i> <code>!news btc</code></li>
+      <li><b><code>!crypto_news [limit]</code></b> <span class="badge bg-success status-badge">Active</span> — Browse the latest crypto news with pagination.<br><i>Example:</i> <code>!crypto_news 10</code></li>
     </ul>
   </div>
 
-  <div class="command-section fade-in">
-    <h2>💹 Trading Commands</h2>
+  <div class="command-section section-disabled fade-in">
+    <h2>💹 Trading Commands <span class="badge bg-danger status-badge">Disabled</span></h2>
+    <p class="text-secondary small">
+      These require an authenticated connection to our exchange's trade API, which is currently
+      unavailable from the bot's host. They'll return a "Trading Temporarily Disabled" message until
+      access is restored.
+    </p>
     <ul>
-      <li>
-        <b><code>!buy &lt;symbol&gt; &lt;price&gt; &lt;amount&gt;</code></b> — Place a buy order.<br>
+      <li class="cmd-disabled">
+        <b><code>!buy &lt;symbol&gt; &lt;price&gt; &lt;amount&gt;</code></b> <span class="badge bg-danger status-badge">Disabled</span> — Place a buy order.<br>
         <i>Example:</i> <code>!buy doge 3685 5</code> (buys 5 DOGE at 3,685 IDR each).<br>
         <small class="text-warning">⚠ Minimum total order: 10,000 IDR</small>
       </li>
-      <li><b><code>!buy_list</code></b> — Lists all your active/pending buy orders.</li>
-      <li><b><code>!cancelbuy &lt;order_id&gt;</code></b> — Cancels a specific buy order.<br>
+      <li class="cmd-disabled"><b><code>!buy_list</code></b> <span class="badge bg-secondary status-badge">Local only</span> — Lists all your active/pending buy orders (reads local records; doesn't need the trade API).</li>
+      <li class="cmd-disabled">
+        <b><code>!cancelbuy &lt;order_id&gt;</code></b> <span class="badge bg-danger status-badge">Disabled</span> — Cancels a specific buy order.<br>
         <i>Example:</i> <code>!cancelbuy DOGEIDR-123456</code>
       </li>
-      <li>
-        <b><code>!sell &lt;symbol&gt; &lt;price&gt; &lt;amount&gt;</code></b> — Place a sell order.<br>
+      <li class="cmd-disabled">
+        <b><code>!sell &lt;symbol&gt; &lt;price&gt; &lt;amount&gt;</code></b> <span class="badge bg-danger status-badge">Disabled</span> — Place a sell order.<br>
         <i>Example:</i> <code>!sell doge 4000 10</code> (sells 10 DOGE at 4,000 IDR each).<br>
         <small class="text-warning">⚠ Minimum total sell order: 25,000 IDR (depends on coin)</small>
       </li>
-      <li><b><code>!sell_list</code></b> — Lists all your active/pending sell orders.</li>
-      <li><b><code>!cancelsell &lt;order_id&gt;</code></b> — Cancels a specific sell order.<br>
+      <li class="cmd-disabled"><b><code>!sell_list</code></b> <span class="badge bg-secondary status-badge">Local only</span> — Lists all your active/pending sell orders (reads local records; doesn't need the trade API).</li>
+      <li class="cmd-disabled">
+        <b><code>!cancelsell &lt;order_id&gt;</code></b> <span class="badge bg-danger status-badge">Disabled</span> — Cancels a specific sell order.<br>
         <i>Example:</i> <code>!cancelsell DOGEIDR-987654</code>
       </li>
     </ul>
@@ -179,11 +225,11 @@
   <div class="command-section fade-in">
     <h2>⚙️ Utility & Admin</h2>
     <ul>
-      <li><b><code>!setkeys</code></b> — Set user's API key for balance checks and buy/sell command.</li>
-      <li><b><code>!balance</code></b> — Checks user's balance.</li>
-      <li><b><code>!ping</code></b> — Checks bot latency.</li>
-      <li><b><code>!help</code></b> — Displays available commands.</li>
-      <li><b><code>!maintenance on/off</code></b> — Toggles bot maintenance mode (<b>Owner Only</b>).</li>
+      <li><b><code>!ping</code></b> <span class="badge bg-success status-badge">Active</span> — Checks bot latency.</li>
+      <li><b><code>!help</code></b> <span class="badge bg-success status-badge">Active</span> — Displays available commands.</li>
+      <li class="cmd-disabled"><b><code>!setkeys</code></b> <span class="badge bg-danger status-badge">Disabled</span> — Sets your API keys for trading. Not useful while trading is off.</li>
+      <li class="cmd-disabled"><b><code>!balance</code></b> <span class="badge bg-danger status-badge">Disabled</span> — Checks your exchange account balance.</li>
+      <li><b><code>!maintenance on/off</code></b> <span class="badge bg-success status-badge">Active</span> — Toggles bot maintenance mode (<b>Owner Only</b>).</li>
     </ul>
   </div>
 
@@ -296,10 +342,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
